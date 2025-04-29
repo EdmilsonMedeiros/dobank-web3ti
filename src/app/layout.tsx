@@ -10,7 +10,7 @@ import GlobalModal from "@/app/shared/modal-views/container";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "App Name",
+  title: "Dobank",
   description: "Write your app description",
 };
 
