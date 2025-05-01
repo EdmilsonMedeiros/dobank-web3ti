@@ -13,13 +13,13 @@ export default function SettingsDrawer() {
       <div className="custom-scrollbar overflow-y-auto scroll-smooth h-[calc(100%-138px)]">
         <div className="px-5 py-6">
           <ThemeSwitcher />
-          <AppDirection />
+          {/* <AppDirection />
           <LayoutSwitcher />
-          <ColorOptions />
+          <ColorOptions /> */}
         </div>
       </div>
 
-      <SettingsFooterButton />
+      {/* <SettingsFooterButton /> */}
     </>
   );
 }

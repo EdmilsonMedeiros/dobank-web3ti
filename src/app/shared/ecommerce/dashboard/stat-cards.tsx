@@ -154,7 +154,7 @@ const eComDashboardStatData = [
   {
     id: '3',
     icon: <PiBankDuotone className="h-6 w-6" />,
-    title: 'Pendentes de aprovação',
+    title: 'Recebimentos Pendentes',
     metric: '35',
     increased: true,
     decreased: false,
