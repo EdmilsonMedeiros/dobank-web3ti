@@ -1,118 +1,61 @@
 import { routes } from "@/config/routes";
 import { DUMMY_ID } from "@/config/constants";
-import {
-  PiShoppingCartDuotone,
-  PiHeadsetDuotone,
-  PiPackageDuotone,
-  PiChartBarDuotone,
-  PiCurrencyDollarDuotone,
-  PiSquaresFourDuotone,
-  PiGridFourDuotone,
-  PiFeatherDuotone,
-  PiChartLineUpDuotone,
-  PiMapPinLineDuotone,
-  PiUserGearDuotone,
-  PiBellSimpleRingingDuotone,
-  PiUserDuotone,
-  PiEnvelopeSimpleOpenDuotone,
-  PiStepsDuotone,
-  PiCreditCardDuotone,
-  PiTableDuotone,
-  PiBrowserDuotone,
-  PiHourglassSimpleDuotone,
-  PiUserCircleDuotone,
-  PiShootingStarDuotone,
-  PiRocketLaunchDuotone,
-  PiFolderLockDuotone,
-  PiBinocularsDuotone,
-  PiHammerDuotone,
-  PiNoteBlankDuotone,
-  PiUserPlusDuotone,
-  PiShieldCheckDuotone,
-  PiLockKeyDuotone,
-  PiChatCenteredDotsDuotone,
-  PiCalendarPlusDuotone,
-  PiEnvelopeDuotone,
-  PiCurrencyCircleDollarDuotone,
-  PiBriefcaseDuotone,
-  PiHouseLineDuotone,
-  PiAirplaneTiltDuotone,
-  PiFolder,
-  PiCaretCircleUpDownDuotone,
-  PiListNumbersDuotone,
-  PiCoinDuotone,
-  PiCalendarDuotone,
-  PiShapesDuotone,
-  PiNewspaperClippingDuotone,
-  PiStairsDuotone,
-  PiMoneyWavy,
-} from "react-icons/pi";
 
-import { 
-  BsArrow90DegUp,
-  BsArrow90DegDown,
-} from "react-icons/bs";
-
-import { 
-  HiArrowsRightLeft,
-} from "react-icons/hi2";
-
-import { 
-  MdOutlineAttachMoney,
- } from "react-icons/md";
-
+import { TbReportMoney } from "react-icons/tb";
  import { LuPanelLeft } from "react-icons/lu";
+ import { GoHome } from "react-icons/go";
+ import { BsCashCoin } from "react-icons/bs";
+ import { AiOutlineDashboard } from "react-icons/ai";
+ import { RiP2pFill } from "react-icons/ri";
 
 // Note: do not add href in the label object, it is rendering as label
 export const menuItems = [
   // label start
   {
-    name: "Overview",
+    name: "GERAL",
   },
   // label end
   {
-    name: "Início",
+    name: "Emitir cobrança",
+    href: "routes.auth.signUp1",
+    icon: <TbReportMoney />,
+    badge: "",
+  },
+  {
+    name: "Dashboard",
     href: "/",
-    icon: <PiHouseLineDuotone />,
+    icon: <GoHome />,
     badge: "",
   },
   {
     name: "Área PIX",
     href: "#",
-    icon: <MdOutlineAttachMoney />,
+    icon: <BsCashCoin />,
     dropdownItems: [
       {
-        name: "Depositar",
+        name: "Transferências",
         href: routes.support.inbox,
       },
       {
-        name: "Transferir",
+        name: "Meus limites",
         href: routes.support.snippets,
-      },
-      {
-        name: "Historico de Transferência",
-        href: routes.support.templates,
       },
     ],
   },
   {
-    name: "Pagar",
-    href: routes.appointment.dashboard,
-    icon: <BsArrow90DegUp />,
-  },
-  {
-    name: "Cobrar",
-    href: routes.executive.dashboard,
-    icon: <BsArrow90DegDown />,
-  },
-  {
     name: "P2P",
     href: routes.jobBoard.dashboard,
-    icon: <HiArrowsRightLeft />,
+    icon: <RiP2pFill />,
+  },
+
+  {
+    name: "PDV",
+    href: routes.jobBoard.dashboard,
+    icon: <AiOutlineDashboard />,
   },
   // label start
   {
-    name: "CONFIGURAÇÃO",
+    name: "MAIS",
   },
   // label end
   {
@@ -121,23 +64,7 @@ export const menuItems = [
     icon: <LuPanelLeft />,
     dropdownItems: [
       {
-        name: "Perfil",
-        href: routes.auth.signUp1,
-      },
-      {
-        name: "Mudar senha",
-        href: routes.auth.signUp2,
-      },
-      {
-        name: "Segurança 2FA",
-        href: routes.auth.signUp3,
-      },
-      {
-        name: "Sms pos",
-        href: routes.auth.signUp4,
-      },
-      {
-        name: "Api's",
+        name: "API's",
         href: routes.auth.signUp5,
       },
       {
@@ -145,11 +72,11 @@ export const menuItems = [
         href: routes.auth.signUp5,
       },
       {
-        name: "Extrato P2P",
+        name: "Suporte",
         href: routes.auth.signUp5,
       },
       {
-        name: "Tickets de Suporte",
+        name: "PDV",
         href: routes.auth.signUp5,
       },
     ],
