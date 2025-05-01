@@ -11,6 +11,9 @@ import {
   PiChartPieSliceDuotone,
 } from 'react-icons/pi';
 import { BarChart, Bar, ResponsiveContainer } from 'recharts';
+import { IoWalletOutline } from "react-icons/io5";
+import { HiOutlineArrowPath } from "react-icons/hi2";
+import { MdOutlinePendingActions } from "react-icons/md";
 
 const orderData = [
   {
@@ -129,7 +132,7 @@ const revenueData = [
 const eComDashboardStatData = [
   {
     id: '1',
-    icon: <PiGiftDuotone className="h-6 w-6" />,
+    icon: <IoWalletOutline className="h-6 w-6" />,
     title: 'Total em depósitos',
     metric: 'R$ 13.598,61',
     increased: true,
@@ -141,7 +144,7 @@ const eComDashboardStatData = [
   },
   {
     id: '2',
-    icon: <PiChartPieSliceDuotone className="h-6 w-6" />,
+    icon: <HiOutlineArrowPath className="h-6 w-6" />,
     title: 'Todas as transações',
     metric: '102',
     increased: false,
@@ -153,14 +156,14 @@ const eComDashboardStatData = [
   },
   {
     id: '3',
-    icon: <PiBankDuotone className="h-6 w-6" />,
+    icon: <MdOutlinePendingActions className="h-6 w-6" />,
     title: 'Recebimentos Pendentes',
     metric: '35',
     increased: true,
     decreased: false,
     percentage: '+32.40',
-    style: 'text-[#7928ca]',
-    fill: '#7928ca',
+    style: 'text-[#fe9705]',
+    fill: '#fe9705',
     chart: revenueData,
   },
 ];

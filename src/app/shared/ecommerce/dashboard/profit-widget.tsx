@@ -56,7 +56,7 @@ export default function ProfitWidget({ className }: { className?: string }) {
       descriptionClassName="text-lg font-semibold sm:text-xl 3xl:text-2xl text-gray-900 font-lexend mt-1"
       action={
         <Button variant="outline" size="sm" className="text-sm">
-          Detailhes
+          Detalhes
         </Button>
       }
       headerClassName="mb-6"
