@@ -3,7 +3,7 @@ import WelcomeBanner from '@core/components/banners/welcome'
 import StatCards from '@shared/ecommerce/dashboard/stat-cards'
 import ProfitWidget from '@shared/ecommerce/dashboard/profit-widget'
 import SalesReport from '@shared/ecommerce/dashboard/sales-report'
-import PromotionalSales from '@shared/ecommerce/dashboard/promotional-sales'
+import QrCode from '@shared/ecommerce/dashboard/qr-code'
 import RecentOrder from '@shared/ecommerce/dashboard/recent-order'
 import HandWaveIcon from '@core/components/icons/hand-wave'
 import welcomeImg from '@public/shop-illustration.png'
@@ -40,18 +40,22 @@ export default function Home() {
               value="https://dobank.com.br?reference=viniciusaquino.tech"
               className="w-48 sm:w-64 md:w-80 lg:w-96 border border-gray-300 rounded-md px-3 py-2 bg-white text-sm cursor-text flex-shrink-0"
             />
-              <Button className="px-3 py-2">
-                <FaRegCopy />
-              </Button>
+            <Button className="px-3 py-2">
+              <FaRegCopy />
+            </Button>
           </div>
         </WelcomeBanner>
 
         <StatCards className="@2xl:grid-cols-3 @4xl:col-span-2 @7xl:col-span-8" />
+
         <ProfitWidget className="h-[464px] @sm:h-[520px] @7xl:col-span-4 @7xl:col-start-9 @7xl:row-start-1 @7xl:row-end-3 @7xl:h-full" />
 
         <SalesReport className="@4xl:col-span-2 @7xl:col-span-8" />
 
-        <PromotionalSales className="@4xl:col-start-2 @4xl:row-start-3 @7xl:col-span-4 @7xl:col-start-auto @7xl:row-start-auto" />
+        <QrCode 
+          className="@4xl:col-start-2 @4xl:row-start-3 @7xl:col-span-4 @7xl:col-start-auto @7xl:row-start-auto" 
+          qrValue="https://dobank.com.br?reference=viniciusaquino.tech" 
+        />
 
         <RecentOrder className="relative @4xl:col-span-2 @7xl:col-span-12" />
       </div>
