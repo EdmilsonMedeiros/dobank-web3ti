@@ -33,10 +33,7 @@ export default function PaymentQrCode({
     return (
         <WidgetCard className={cn('@container', className)}>
             <div className="flex flex-col items-center text-center space-y-4 py-8">
-                <Badge variant="flat" color="success" rounded="md">
-                    ATIVO
-                </Badge>
-                <Title as="h6">Copie seu QR Code de pagamento</Title>
+                <Title as="h6">QR Code de pagamento</Title>
                 <Text>Compartilhe este código para receber seus pagamentos.</Text>
                 <div onClick={copyQr} className="cursor-pointer">
                     <QRCodeSVG value={qrValue} className="h-40 w-40" />
