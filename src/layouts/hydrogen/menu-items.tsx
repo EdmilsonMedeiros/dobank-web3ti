@@ -64,6 +64,10 @@ export const menuItems = [
     icon: <LuPanelLeft />,
     dropdownItems: [
       {
+        name: "Minha Conta",
+        href: routes.forms.profileSettings,
+      },
+      {
         name: "API's",
         href: routes.auth.signUp5,
       },

@@ -14,7 +14,7 @@ export default function ProfitWidget({ className }: { className?: string }) {
       >
         <div className="flex flex-col h-full p-5">
           <Text className="text-white text-4xl font-bold">
-            $ 382,78
+            R$ 382,78
           </Text>
 
           <Text className="text-white/80 mt-2.5 flex items-center">
