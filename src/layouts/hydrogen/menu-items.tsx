@@ -23,7 +23,7 @@ export const menuItems = [
   },
   {
     name: "Dashboard",
-    href: "/",
+    href: "/ecommerce",
     icon: <GoHome />,
     badge: "",
   },

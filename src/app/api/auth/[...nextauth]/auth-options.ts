@@ -4,6 +4,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 import { env } from '@/env.mjs'
 import { pagesOptions } from './pages-options'
+import { routes } from '@/config/routes'
 
 export const authOptions: NextAuthOptions = {
   pages: { ...pagesOptions },
@@ -32,7 +33,7 @@ export const authOptions: NextAuthOptions = {
       }
     },
     async redirect({ baseUrl }) {
-      return baseUrl
+      return `${baseUrl}${routes.eCommerce.dashboard}`
     },
   },
   providers: [

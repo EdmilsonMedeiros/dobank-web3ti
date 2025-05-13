@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { Text } from 'rizzui/typography';
-import OtpForm from '@/app/auth/(otp)/otp-5/otp-form';
+import OtpForm from '@/app/(auth)/(otp)/otp-5/otp-form';
 import AuthWrapperFive from '@/app/shared/auth-layout/auth-wrapper-five';
 import WaveLongShape from '@core/components/shape/wave-long';
 
