@@ -17,7 +17,7 @@ export const menuItems = [
   // label end
   {
     name: "Emitir cobrança",
-    href: "routes.auth.signUp1",
+    href: routes.support.inbox,
     icon: <TbReportMoney />,
     badge: "",
   },
@@ -65,19 +65,19 @@ export const menuItems = [
     dropdownItems: [
       {
         name: "API's",
-        href: routes.auth.signUp5,
+        href: routes.auth.signIn,
       },
       {
         name: "Indicações",
-        href: routes.auth.signUp5,
+        href: routes.auth.signIn,
       },
       {
         name: "Suporte",
-        href: routes.auth.signUp5,
+        href: routes.auth.signIn,
       },
       {
         name: "PDV",
-        href: routes.auth.signUp5,
+        href: routes.auth.signIn,
       },
     ],
   },
