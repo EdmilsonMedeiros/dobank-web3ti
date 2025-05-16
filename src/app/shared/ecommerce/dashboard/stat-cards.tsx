@@ -134,7 +134,8 @@ const eComDashboardStatData = [
     id: '1',
     icon: <IoWalletOutline className="h-6 w-6" />,
     title: 'Total em depósitos',
-    metric: 'R$ 13.598,61',
+    // metric: 'R$ 13.598,61',
+    metric: 'R$ N/A',
     increased: true,
     decreased: false,
     percentage: '+32.40',
@@ -146,7 +147,8 @@ const eComDashboardStatData = [
     id: '2',
     icon: <HiOutlineArrowPath className="h-6 w-6" />,
     title: 'Todas as transações',
-    metric: '102',
+    // metric: '102',
+    metric: 'N/A',
     increased: false,
     decreased: true,
     percentage: '-4.40',
@@ -154,18 +156,18 @@ const eComDashboardStatData = [
     fill: '#10b981',
     chart: salesData,
   },
-  {
-    id: '3',
-    icon: <MdOutlinePendingActions className="h-6 w-6" />,
-    title: 'Recebimentos Pendentes',
-    metric: '35',
-    increased: true,
-    decreased: false,
-    percentage: '+32.40',
-    style: 'text-[#fe9705]',
-    fill: '#fe9705',
-    chart: revenueData,
-  },
+  // {
+  //   id: '3',
+  //   icon: <MdOutlinePendingActions className="h-6 w-6" />,
+  //   title: 'Recebimentos Pendentes',
+  //   metric: '35',
+  //   increased: true,
+  //   decreased: false,
+  //   percentage: '+32.40',
+  //   style: 'text-[#fe9705]',
+  //   fill: '#fe9705',
+  //   chart: revenueData,
+  // },
 ];
 
 export default function StatCards({ className }: { className?: string }) {
@@ -196,7 +198,7 @@ export default function StatCards({ className }: { className?: string }) {
           chartClassName="hidden @[200px]:flex @[200px]:items-center h-14 w-24"
           className="@container [&>div]:items-center"
         >
-          <Text className="mt-5 flex items-center border-t border-dashed border-muted pt-4 leading-none text-gray-500">
+          {/* <Text className="mt-5 flex items-center border-t border-dashed border-muted pt-4 leading-none text-gray-500">
             <Text
               as="span"
               className={cn(
@@ -215,7 +217,7 @@ export default function StatCards({ className }: { className?: string }) {
               {stat.increased ? 'Increased' : 'Decreased'}
             </Text>{' '}
             last month
-          </Text>
+          </Text> */}
         </MetricCard>
       ))}
     </div>

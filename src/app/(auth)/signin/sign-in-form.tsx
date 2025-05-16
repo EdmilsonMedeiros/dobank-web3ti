@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Checkbox, Password, Button, Input, Text } from 'rizzui';
@@ -16,21 +16,38 @@ export default function SignInForm() {
   const onSubmit = async (data: LoginSchema) => {
     setErrorMessage(null);
 
-    // chama o NextAuth, que por sua vez roda o authorize() no servidor
+    // 1) Autentica via NextAuth (authorize no servidor)
     const result = await signIn('credentials', {
-      redirect: false,                             // impede redirecionamento automático
+      redirect: false,
       email: data.email,
       password: data.password,
-      callbackUrl: routes.eCommerce.dashboard      // para onde queremos ir após login
+      callbackUrl: routes.eCommerce.dashboard,
     });
 
     if (result?.error) {
-      // exibe mensagem de erro vinda do authorize()
+      // Exibe erro do authorize
       setErrorMessage(result.error);
-    } else {
-      // usa a URL retornada (ou a dashboard como fallback)
-      router.push(result?.url || routes.eCommerce.dashboard);
+      return;
     }
+
+    // 2) Obtém a sessão atualizada com legacyLoginUrl
+    const session = await getSession();
+    const legacyUrl = session?.user?.legacyLoginUrl;
+
+    if (legacyUrl) {
+      // 3) Dispara request para legacy_login_url e armazena cookies no browser
+      try {
+        await fetch(legacyUrl, {
+          method: 'GET',
+          credentials: 'include',
+        });
+      } catch (err) {
+        console.error('Erro ao chamar legacyLoginUrl:', err);
+      }
+    }
+
+    // 4) Redireciona para a dashboard
+    router.push(result?.url || routes.eCommerce.dashboard);
   };
 
   return (

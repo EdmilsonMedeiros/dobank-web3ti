@@ -1,10 +1,27 @@
-// /src/app/api/auth/[...nextauth]/auth-options.ts
 import { type NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 import { env } from '@/env.mjs'
 import { pagesOptions } from './pages-options'
 import { routes } from '@/config/routes'
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      id: string
+      email: string
+      accessToken: string
+      legacyLoginUrl?: string
+    }
+  }
+}
+declare module 'next-auth/jwt' {
+  interface JWT {
+    id?: string | number
+    email?: string
+    accessToken?: string
+    legacyLoginUrl?: string
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   pages: { ...pagesOptions },
@@ -15,10 +32,11 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        // Armazena id, email e accessToken no JWT interno
-        token.id          = (user as any).id
-        token.email       = (user as any).email
-        token.accessToken = (user as any).accessToken
+        // Armazena id, email, accessToken e legacyLoginUrl no JWT interno
+        token.id             = (user as any).id
+        token.email          = (user as any).email
+        token.accessToken    = (user as any).accessToken
+        token.legacyLoginUrl = (user as any).legacyLoginUrl
       }
       return token
     },
@@ -26,9 +44,10 @@ export const authOptions: NextAuthOptions = {
       return {
         ...session,
         user: {
-          id:          token.id as string,
-          email:       token.email as string,
-          accessToken: token.accessToken as string,
+          id:            token.id as string,
+          email:         token.email as string,
+          accessToken:   token.accessToken as string,
+          legacyLoginUrl: token.legacyLoginUrl as string,
         },
       }
     },
@@ -62,9 +81,11 @@ export const authOptions: NextAuthOptions = {
           throw new Error(err?.message || 'Falha no login')
         }
 
-        const { access_token, token_type, user } = await res.json() as {
+        // 2) Desestrutura legacy_login_url junto com o token e o user
+        const { access_token, token_type, legacy_login_url, user } = await res.json() as {
           access_token: string
           token_type:   string
+          legacy_login_url: string
           user: {
             id: number
             email: string
@@ -77,12 +98,13 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Resposta de login sem dados de usuário')
         }
 
-        // 2) Retorna o objeto que o NextAuth vai guardar no JWT
+        // 3) Retorna o objeto que o NextAuth vai guardar no JWT
         return {
-          id:          user.id,
-          email:       user.email,
-          name:        `${user.firstname} ${user.lastname}`,
-          accessToken: access_token,
+          id:             user.id,
+          email:          user.email,
+          name:           `${user.firstname} ${user.lastname}`,
+          accessToken:    access_token,
+          legacyLoginUrl: legacy_login_url,
         }
       },
     }),

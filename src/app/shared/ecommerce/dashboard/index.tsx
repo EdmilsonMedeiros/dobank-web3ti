@@ -1,4 +1,3 @@
-// src/app/page.tsx
 import { Title } from "rizzui/typography";
 import WelcomeBanner from '@core/components/banners/welcome'
 import StatCards from '@shared/ecommerce/dashboard/stat-cards'
