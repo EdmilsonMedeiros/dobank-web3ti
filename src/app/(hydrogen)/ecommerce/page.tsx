@@ -106,7 +106,7 @@ export default async function Home() {
             className="w-full"
           />
 
-          <UpgradeStorage className="w-full" />
+          {/* <UpgradeStorage className="w-full" /> */}
         </div>
       </div>
     </div>
