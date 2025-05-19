@@ -53,6 +53,7 @@ export default function RecentOrder({
       return {
         id: tx.id,
         date: new Date(tx.created_at).toLocaleDateString('pt-BR', {
+          timeZone: 'America/Sao_Paulo',
           day: '2-digit',
           month: '2-digit',
           year: 'numeric',

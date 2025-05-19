@@ -1,4 +1,3 @@
-// src/app/(hydrogen)/ecommerce/page.tsx
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth-options";
 import WelcomeBanner from "@core/components/banners/welcome";
