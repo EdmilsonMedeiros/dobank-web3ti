@@ -14,28 +14,16 @@ import { Button } from "rizzui/button";
 import { FaRegCopy } from "react-icons/fa";
 
 export default async function Home() {
-  // 1) busca a sessão no servidor
   const session = await getServerSession(authOptions);
-  if (!session) {
-    return <p>Você precisa estar logado.</p>;
-  }
+  if (!session) return <p>Você precisa estar logado.</p>;
 
   const token = session.user.accessToken;
-
-  // 2) chama a API de usuário com o bearer token
   const res = await fetch("https://crypto.web3ti.com.br/api/user", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    cache: "no-store", // sempre buscar dados frescos
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
   });
+  if (!res.ok) throw new Error("Erro ao buscar user");
 
-  if (!res.ok) {
-    console.error("Erro ao buscar user:", await res.text());
-    return <p>Erro ao carregar dados do usuário.</p>;
-  }
-
-  // 3) pega firstname, lastname, username e os valores de saldo
   const { user } = (await res.json()) as {
     user: {
       firstname: string;
@@ -46,6 +34,16 @@ export default async function Home() {
       account_number: string;
       qrcode_static: string;
       copiaecola: string;
+      transactions: Array<{
+        id: number;
+        amount: string;
+        charge: string;
+        post_balance: string;
+        trx_type: "+" | "-";
+        trx: string;
+        details: string;
+        created_at: string;
+      }>;
     };
   };
 
@@ -89,7 +87,7 @@ export default async function Home() {
 
           <StatCards className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" />
 
-          <RecentOrder className="w-full" />
+          <RecentOrder className="w-full" transactions={user.transactions} />
         </div>
 
         {/* Coluna Direita */}

@@ -156,18 +156,19 @@ const eComDashboardStatData = [
     fill: '#10b981',
     chart: salesData,
   },
-  // {
-  //   id: '3',
-  //   icon: <MdOutlinePendingActions className="h-6 w-6" />,
-  //   title: 'Recebimentos Pendentes',
-  //   metric: '35',
-  //   increased: true,
-  //   decreased: false,
-  //   percentage: '+32.40',
-  //   style: 'text-[#fe9705]',
-  //   fill: '#fe9705',
-  //   chart: revenueData,
-  // },
+  {
+    id: '3',
+    icon: <MdOutlinePendingActions className="h-6 w-6" />,
+    title: 'Recebimentos Pendentes',
+    // metric: '35',
+    metric: 'N/A',
+    increased: true,
+    decreased: false,
+    percentage: '+32.40',
+    style: 'text-[#fe9705]',
+    fill: '#fe9705',
+    chart: revenueData,
+  },
 ];
 
 export default function StatCards({ className }: { className?: string }) {

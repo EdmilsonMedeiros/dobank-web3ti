@@ -1,70 +1,72 @@
 'use client';
 
 import { OrdersDataType } from '@/app/shared/ecommerce/dashboard/recent-order';
-import { routes } from '@/config/routes';
 import { getStatusBadge } from '@core/components/table-utils/get-status-badge';
-import TableRowActionGroup from '@core/components/table-utils/table-row-action-group';
-import TableAvatar from '@core/ui/avatar-card';
-import DateCell from '@core/ui/date-cell';
 import { createColumnHelper } from '@tanstack/react-table';
-import { PiCaretDownBold, PiCaretUpBold } from 'react-icons/pi';
-import { ActionIcon, Text } from 'rizzui';
+import { Text } from 'rizzui';
 
 const columnHelper = createColumnHelper<OrdersDataType>();
 
 export const ordersColumns = (expanded: boolean = true) => {
-  const columns = [
+  return [
     columnHelper.display({
       id: 'id',
       size: 80,
       header: 'ID',
       cell: ({ row }) => <>#{row.original.id}</>,
     }),
-    columnHelper.accessor('trx', {
-      id: 'trx',
+
+    columnHelper.accessor('reference', {
+      id: 'reference',
       size: 180,
       header: 'Trx',
-      cell: ({ row }) => <Text className="inline-block font-mono text-xs text-gray-700 
-                     bg-gray-50 border border-gray-200 
-                     rounded-md px-2 py-0.5">{row.original.trx}</Text>,
+      cell: ({ getValue }) => (
+        <Text
+          className="inline-block font-mono text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded-md px-2 py-0.5"
+        >
+          {getValue()}
+        </Text>
+      ),
     }),
-    columnHelper.accessor('data', {
-      id: 'data',
+
+    columnHelper.accessor('date', {
+      id: 'date',
       size: 120,
       header: 'Data',
-      cell: ({ row }) => <Text>{row.original.data}</Text>,
+      cell: ({ getValue }) => <Text>{getValue()}</Text>,
     }),
-    columnHelper.accessor('resumo', {
-      id: 'resumo',
+
+    columnHelper.accessor('details', {
+      id: 'details',
       size: 300,
       header: 'Resumo',
-      cell: ({ row }) => <Text>{row.original.resumo}</Text>,
+      cell: ({ getValue }) => <Text>{getValue()}</Text>,
     }),
-    columnHelper.accessor('tipo', {
-      id: 'tipo',
+
+    columnHelper.accessor('status', {
+      id: 'status',
       size: 120,
       header: 'Tipo',
       enableSorting: false,
-      cell: ({ row }) => getStatusBadge(row.original.tipo),
+      cell: ({ getValue }) => getStatusBadge(getValue() || ''),
     }),
-    columnHelper.accessor('total', {
-      id: 'total',
+
+    columnHelper.accessor('amount', {
+      id: 'amount',
       size: 120,
       header: 'Total',
-      cell: ({ row }) => (
-        <Text className="font-medium">{row.original.total}</Text>
+      cell: ({ getValue }) => (
+        <Text className="font-medium">{getValue()}</Text>
       ),
     }),
-    columnHelper.accessor('saldoFinal', {
-      id: 'saldoFinal',
+
+    columnHelper.accessor('postBalance', {
+      id: 'postBalance',
       size: 140,
       header: 'Saldo Final',
-      cell: ({ row }) => (
-        <Text className="font-medium">{row.original.saldoFinal}</Text>
+      cell: ({ getValue }) => (
+        <Text className="font-medium">{getValue()}</Text>
       ),
     }),
   ];
-
-  // se você quiser row expand para detalhes extra, basta copiar a lógica de expandedOrdersColumns
-  return columns;
 };
