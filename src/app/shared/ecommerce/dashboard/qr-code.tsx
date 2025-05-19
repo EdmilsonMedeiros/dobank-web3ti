@@ -44,7 +44,7 @@ export default function PaymentQrCode({
             <img
               src={`data:image/png;base64,${qrValue}`}
               alt="QR Code estático"
-              className="h-40 w-40"
+              className="56 w-56"
             />
           ) : (
             <QRCodeSVG value={qrValue} className="h-40 w-40" />
