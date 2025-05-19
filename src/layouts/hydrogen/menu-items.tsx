@@ -7,6 +7,8 @@ import { TbReportMoney } from "react-icons/tb";
  import { BsCashCoin } from "react-icons/bs";
  import { AiOutlineDashboard } from "react-icons/ai";
  import { RiP2pFill } from "react-icons/ri";
+ import { TbCashRegister } from "react-icons/tb";
+ import { CiMoneyCheck1 } from "react-icons/ci";
 
 // Note: do not add href in the label object, it is rendering as label
 export const menuItems = [
@@ -43,6 +45,18 @@ export const menuItems = [
     ],
   },
   {
+    name: "Pagamentos",
+    href: routes.jobBoard.dashboard,
+    icon: <CiMoneyCheck1 />,
+    badge: "",
+  },
+  {
+    name: "Cobrança",
+    href: routes.jobBoard.dashboard,
+    icon: <TbCashRegister />,
+    badge: "",
+  },
+  {
     name: "P2P",
     href: routes.jobBoard.dashboard,
     icon: <RiP2pFill />,
@@ -63,6 +77,10 @@ export const menuItems = [
     href: "#",
     icon: <LuPanelLeft />,
     dropdownItems: [
+      {
+        name: "Minha conta",
+        href: routes.auth.signIn,
+      },
       {
         name: "API's",
         href: routes.auth.signIn,
