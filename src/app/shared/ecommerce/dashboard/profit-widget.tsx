@@ -1,5 +1,4 @@
-// src/app/shared/ecommerce/dashboard/profit-widget.tsx
-'use client';
+"use client";
 
 import BannerCard from '@core/components/banners/banner-card';
 import { Text } from 'rizzui/typography';
@@ -9,8 +8,8 @@ import Link from 'next/link';
 interface ProfitWidgetProps {
   className?: string;
   balance: string;
-  balanceBloqueado: string;
-  bloqueiosMed: string;
+  balanceBloqueado?: string;
+  bloqueiosMed?: string;
   accountNumber: string;
 }
 
@@ -29,6 +28,10 @@ export default function ProfitWidget({
       minimumFractionDigits: 2,
     }).format(Number(value));
 
+  // checa se existem valores positivos
+  const hasBloqueado = balanceBloqueado !== undefined && Number(balanceBloqueado) > 0;
+  const hasMed = bloqueiosMed !== undefined && !isNaN(Number(bloqueiosMed)) && Number(bloqueiosMed) > 0;
+
   return (
     <div className={className}>
       <BannerCard
@@ -46,27 +49,32 @@ export default function ProfitWidget({
             Valor total sem taxas incluídas.
           </Text>
 
-          {/* Campos adicionais lado a lado */}
-          <div className="flex mt-4 space-x-8">
-            {/* Saldo Bloqueado */}
-            <div className="flex flex-col">
-              <Text className="text-white/80 text-sm">
-                Saldo bloqueado
-              </Text>
-              <Text className="text-white text-xl font-bold">
-                {fmtBRL(balanceBloqueado)}
-              </Text>
+          {/* Campos adicionais lado a lado, só se existir */}
+          {(hasBloqueado || hasMed) && (
+            <div className="flex mt-4 space-x-8">
+              {hasBloqueado && (
+                <div className="flex flex-col">
+                  <Text className="text-white/80 text-sm">
+                    Saldo bloqueado
+                  </Text>
+                  <Text className="text-white text-xl font-bold">
+                    {fmtBRL(balanceBloqueado!)}
+                  </Text>
+                </div>
+              )}
+
+              {hasMed && (
+                <div className="flex flex-col">
+                  <Text className="text-white/80 text-sm">
+                    Bloqueios MED
+                  </Text>
+                  <Text className="text-white text-xl font-bold">
+                    {fmtBRL(bloqueiosMed!)}
+                  </Text>
+                </div>
+              )}
             </div>
-            {/* Bloqueios MED */}
-            <div className="flex flex-col">
-              <Text className="text-white/80 text-sm">
-                Bloqueios MED
-              </Text>
-              <Text className="text-white text-xl font-bold">
-                {bloqueiosMed}
-              </Text>
-            </div>
-          </div>
+          )}
 
           {/* Número da Conta */}
           <Text className="text-white/80 text-sm mt-4">
