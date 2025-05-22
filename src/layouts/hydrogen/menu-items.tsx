@@ -2,13 +2,13 @@ import { routes } from "@/config/routes";
 import { DUMMY_ID } from "@/config/constants";
 
 import { TbReportMoney } from "react-icons/tb";
- import { LuPanelLeft } from "react-icons/lu";
- import { GoHome } from "react-icons/go";
- import { BsCashCoin } from "react-icons/bs";
- import { AiOutlineDashboard } from "react-icons/ai";
- import { RiP2pFill } from "react-icons/ri";
- import { TbCashRegister } from "react-icons/tb";
- import { CiMoneyCheck1 } from "react-icons/ci";
+import { LuPanelLeft } from "react-icons/lu";
+import { GoHome } from "react-icons/go";
+import { BsCashCoin } from "react-icons/bs";
+import { AiOutlineDashboard } from "react-icons/ai";
+import { RiP2pFill } from "react-icons/ri";
+import { TbCashRegister } from "react-icons/tb";
+import { CiMoneyCheck1 } from "react-icons/ci";
 
 // Note: do not add href in the label object, it is rendering as label
 export const menuItems = [
@@ -16,10 +16,9 @@ export const menuItems = [
   {
     name: "GERAL",
   },
-  // label end
   {
     name: "Emitir cobrança",
-    href: routes.support.inbox,
+    href: routes.core.createCharge(),
     icon: <TbReportMoney />,
     badge: "",
   },
@@ -36,38 +35,37 @@ export const menuItems = [
     dropdownItems: [
       {
         name: "Transferências",
-        href: routes.support.inbox,
+        href: routes.core.transfers(),
       },
       {
         name: "Meus limites",
-        href: routes.support.snippets,
+        href: routes.core.myLimits(),
       },
     ],
   },
   {
     name: "Pagamentos",
-    href: routes.jobBoard.dashboard,
+    href: routes.core.payments(),
     icon: <CiMoneyCheck1 />,
     badge: "",
   },
   {
     name: "Cobrança",
-    href: routes.jobBoard.dashboard,
+    href: routes.core.charges(),
     icon: <TbCashRegister />,
     badge: "",
   },
   {
     name: "P2P",
-    href: routes.jobBoard.dashboard,
+    href: routes.core.p2p(),
     icon: <RiP2pFill />,
   },
 
   {
     name: "PDV",
-    href: routes.jobBoard.dashboard,
+    href: routes.core.pdv(),
     icon: <AiOutlineDashboard />,
   },
-  // label start
   {
     name: "MAIS",
   },

@@ -1,3 +1,5 @@
+export const LEGACY_BASE = process.env.NEXT_PUBLIC_LEGACY_BASE_URL!.replace(/\/$/, '');
+
 export const routes = {
   auth: {
     signIn: "/signin",
@@ -7,7 +9,14 @@ export const routes = {
   },
 
   core: {
-    dashboard: "/dashboard",
+    createCharge: () => `${LEGACY_BASE}/user/receipt/history`, // “Emitir Cobrança”
+    dashboard: "/dashboard", // “Dashboard”
+    transfers: () => `${LEGACY_BASE}/user/transfer/pix`, // “Transferências”
+    myLimits: () => `${LEGACY_BASE}/user/transfer/log`, // “Meus limites”
+    payments: () => `${LEGACY_BASE}/user/billet`, // “Pagamentos”
+    charges: () => `${LEGACY_BASE}/user/receipt/history`, // “Cobrança”
+    p2p: () => `${LEGACY_BASE}/user/transfer/own`, // “P2P”
+    pdv: () => `${LEGACY_BASE}/user/limites`, // “PDS”
   },
 
   eCommerce: {
