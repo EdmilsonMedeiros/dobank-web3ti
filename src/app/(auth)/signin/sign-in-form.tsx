@@ -25,28 +25,19 @@ export default function SignInForm() {
     });
 
     if (result?.error) {
-      // Exibe erro do authorize
       setErrorMessage(result.error);
       return;
     }
 
-    // 2) Obtém a sessão atualizada com legacyLoginUrl
+    // 2) Se existir legacyLoginUrl, redireciona full para lá (Laravel trata e volta)
     const session = await getSession();
     const legacyUrl = session?.user?.legacyLoginUrl;
-
     if (legacyUrl) {
-      // 3) Dispara request para legacy_login_url e armazena cookies no browser
-      try {
-        await fetch(legacyUrl, {
-          method: 'GET',
-          credentials: 'include',
-        });
-      } catch (err) {
-        console.error('Erro ao chamar legacyLoginUrl:', err);
-      }
+      window.location.href = legacyUrl;
+      return;
     }
 
-    // 4) Redireciona para a dashboard
+    // 3) Caso não haja legacyUrl, cai aqui
     router.push(result?.url || routes.eCommerce.dashboard);
   };
 
@@ -89,8 +80,7 @@ export default function SignInForm() {
         )}
       </Form>
       <Text className="mt-6 text-center">
-        Don’t have an account?{' '}
-        <Link href={routes.auth.signUp1}>Sign Up</Link>
+        Don’t have an account? <Link href={routes.auth.signUp1}>Sign Up</Link>
       </Text>
     </>
   );
