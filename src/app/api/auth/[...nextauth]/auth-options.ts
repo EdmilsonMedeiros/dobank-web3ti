@@ -52,7 +52,7 @@ export const authOptions: NextAuthOptions = {
       }
     },
     async redirect({ baseUrl }) {
-      return `${baseUrl}${routes.eCommerce.dashboard}`
+      return `${baseUrl}${routes.core.dashboard}`
     },
   },
   providers: [

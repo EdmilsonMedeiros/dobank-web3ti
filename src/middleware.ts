@@ -12,6 +12,6 @@ export const config = {
   // restricted routes
   matcher: [
     "/forms/:path*",   // todas as rotas /forms/** ficarão protegidas
-    "/ecommerce/:path*",
+    "/dashboard/:path*",
   ],
 };

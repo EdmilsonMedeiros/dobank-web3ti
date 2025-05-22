@@ -25,7 +25,7 @@ export const menuItems = [
   },
   {
     name: "Dashboard",
-    href: "/ecommerce",
+    href: "/dashboard",
     icon: <GoHome />,
     badge: "",
   },

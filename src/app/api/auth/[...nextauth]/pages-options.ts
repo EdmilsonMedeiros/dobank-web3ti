@@ -1,5 +1,3 @@
-// src/app/api/auth/[...nextauth]/pages-options.ts
-
 import { routes } from '@/config/routes'
 import { PagesOptions } from 'next-auth'
 

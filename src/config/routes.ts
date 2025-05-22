@@ -5,8 +5,12 @@ export const routes = {
     forgotPassword1: "/auth/forgot-password-1",
     signUp1: "/auth/sign-up-1",
   },
+
+  core: {
+    dashboard: "/dashboard",
+  },
+
   eCommerce: {
-    dashboard: "/ecommerce",
     products: "/ecommerce/products",
     createProduct: "/ecommerce/products/create",
     productDetails: (slug: string) => `/ecommerce/products/${slug}`,

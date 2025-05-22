@@ -21,7 +21,7 @@ export default function SignInForm() {
       redirect: false,
       email: data.email,
       password: data.password,
-      callbackUrl: routes.eCommerce.dashboard,
+      callbackUrl: routes.core.dashboard,
     });
 
     if (result?.error) {
@@ -38,7 +38,7 @@ export default function SignInForm() {
     }
 
     // 3) Caso não haja legacyUrl, cai aqui
-    router.push(result?.url || routes.eCommerce.dashboard);
+    router.push(result?.url || routes.core.dashboard);
   };
 
   return (
