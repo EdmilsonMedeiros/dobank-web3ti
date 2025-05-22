@@ -17,6 +17,7 @@ export const routes = {
     charges: () => `${LEGACY_BASE}/user/receipt/history`, // “Cobrança”
     p2p: () => `${LEGACY_BASE}/user/transfer/own`, // “P2P”
     pdv: () => `${LEGACY_BASE}/user/limites`, // “PDS”
+    transactions: () => `${LEGACY_BASE}/user/transactions`, // “Transações”
   },
 
   eCommerce: {

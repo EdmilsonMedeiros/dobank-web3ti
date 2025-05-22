@@ -1,4 +1,3 @@
-// src/app/shared/ecommerce/dashboard/qr-code.tsx
 'use client';
 
 import { QRCodeSVG } from 'qrcode.react';

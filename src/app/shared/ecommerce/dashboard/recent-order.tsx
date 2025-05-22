@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import WidgetCard from '@core/components/cards/widget-card';
 import Table from '@core/components/table';
 import { useTanStackTable } from '@core/components/table/custom/use-TanStack-Table';
-import TablePagination from '@core/components/table/pagination';
+import TablePagination from '@/app/shared/ecommerce/dashboard/table-pagination';
 import { ordersColumns } from '@/app/shared/ecommerce/order/order-list/columns';
 import { Input } from 'rizzui';
 import { PiMagnifyingGlassBold } from 'react-icons/pi';
