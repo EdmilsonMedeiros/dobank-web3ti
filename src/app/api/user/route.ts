@@ -1,7 +1,7 @@
-// src/app/api/user/route.ts
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/[...nextauth]/auth-options'
+import { env } from '@/env.mjs';
 
 export async function GET() {
   // 1) Busca sessão com NextAuth
@@ -10,8 +10,10 @@ export async function GET() {
     return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
   }
 
+  const apiBase = env.NEXT_PUBLIC_API_BASE_URL;
+
   // 2) Chama o backend passando o token
-  const res = await fetch('https://crypto.web3ti.com.br/api/user', {
+  const res = await fetch(`${apiBase}/user`, {
     headers: {
       Authorization: `Bearer ${session.user.accessToken}`,
       'Content-Type': 'application/json',

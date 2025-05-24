@@ -8,9 +8,9 @@ export default function EcommerceLayout({
   children: React.ReactNode;
 }) {
   return (
-    <CartProvider>
+    <>
       {children}
-      <CartDrawer />
-    </CartProvider>
+      {/* <CartDrawer /> */}
+    </>
   );
 }

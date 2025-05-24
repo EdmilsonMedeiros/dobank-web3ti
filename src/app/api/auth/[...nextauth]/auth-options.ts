@@ -33,9 +33,9 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         // Armazena id, email, accessToken e legacyLoginUrl no JWT interno
-        token.id             = (user as any).id
-        token.email          = (user as any).email
-        token.accessToken    = (user as any).accessToken
+        token.id = (user as any).id
+        token.email = (user as any).email
+        token.accessToken = (user as any).accessToken
         token.legacyLoginUrl = (user as any).legacyLoginUrl
       }
       return token
@@ -44,9 +44,9 @@ export const authOptions: NextAuthOptions = {
       return {
         ...session,
         user: {
-          id:            token.id as string,
-          email:         token.email as string,
-          accessToken:   token.accessToken as string,
+          id: token.id as string,
+          email: token.email as string,
+          accessToken: token.accessToken as string,
           legacyLoginUrl: token.legacyLoginUrl as string,
         },
       }
@@ -60,18 +60,17 @@ export const authOptions: NextAuthOptions = {
       id: 'credentials',
       name: 'Credenciais',
       credentials: {
-        email:    { label: 'Email',    type: 'text' },
-        password: { label: 'Senha',    type: 'password' },
+        email: { label: 'Email', type: 'text' },
+        password: { label: 'Senha', type: 'password' },
       },
       async authorize(credentials) {
-        const API = 'https://crypto.web3ti.com.br'
+        const apiBase = env.NEXT_PUBLIC_API_BASE_URL;
 
-        // 1) Executa o login e já recebe o user embutido
-        const res = await fetch(`${API}/api/login`, {
-          method:  'POST',
+        const res = await fetch(`${apiBase}/login`, {
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({
-            email:    credentials?.email,
+          body: JSON.stringify({
+            email: credentials?.email,
             password: credentials?.password,
           }),
         })
@@ -84,7 +83,7 @@ export const authOptions: NextAuthOptions = {
         // 2) Desestrutura legacy_login_url junto com o token e o user
         const { access_token, token_type, legacy_login_url, user } = await res.json() as {
           access_token: string
-          token_type:   string
+          token_type: string
           legacy_login_url: string
           user: {
             id: number
@@ -100,17 +99,17 @@ export const authOptions: NextAuthOptions = {
 
         // 3) Retorna o objeto que o NextAuth vai guardar no JWT
         return {
-          id:             user.id,
-          email:          user.email,
-          name:           `${user.firstname} ${user.lastname}`,
-          accessToken:    access_token,
+          id: user.id,
+          email: user.email,
+          name: `${user.firstname} ${user.lastname}`,
+          accessToken: access_token,
           legacyLoginUrl: legacy_login_url,
         }
       },
     }),
 
     GoogleProvider({
-      clientId:  env.GOOGLE_CLIENT_ID || '',
+      clientId: env.GOOGLE_CLIENT_ID || '',
       clientSecret: env.GOOGLE_CLIENT_SECRET || '',
       allowDangerousEmailAccountLinking: true,
     }),

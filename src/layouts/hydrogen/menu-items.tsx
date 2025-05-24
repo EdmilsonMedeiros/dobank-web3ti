@@ -18,7 +18,7 @@ export const menuItems = [
   },
   {
     name: "Emitir cobrança",
-    href: routes.core.createCharge(),
+    href: routes.core.createCharge,
     icon: <TbReportMoney />,
     badge: "",
   },

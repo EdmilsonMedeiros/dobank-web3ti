@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth-options";
+import { env } from '@/env.mjs';
 import WelcomeBanner from "@core/components/banners/welcome";
 import HandWaveIcon from "@core/components/icons/hand-wave";
 import welcomeImg from "@public/shop-illustration.png";
@@ -13,11 +14,15 @@ import { Button } from "rizzui/button";
 import { FaRegCopy } from "react-icons/fa";
 
 export default async function Home() {
+  const apiBase = env.NEXT_PUBLIC_API_BASE_URL;
+  const siteUrl = env.NEXT_PUBLIC_SITE_URL;
+
   const session = await getServerSession(authOptions);
   if (!session) return <p>Você precisa estar logado.</p>;
 
   const token = session.user.accessToken;
-  const res = await fetch("https://crypto.web3ti.com.br/api/user", {
+
+  const res = await fetch(`${apiBase}/user`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
@@ -47,7 +52,7 @@ export default async function Home() {
   };
 
   const fullName = `${user.firstname} ${user.lastname}`;
-  const referralUrl = `https://dobank.com.br?reference=${user.username}`;
+  const referralUrl = `${siteUrl}?reference=${user.username}`;
 
   return (
     <div className="@container">

@@ -9,15 +9,22 @@ export const routes = {
   },
 
   core: {
-    createCharge: () => `${LEGACY_BASE}/user/receipt/history`, // “Emitir Cobrança”
+    // Geral
+    createCharge: "/dashboard?", // “Emitir Cobrança”
     dashboard: "/dashboard", // “Dashboard”
     transfers: () => `${LEGACY_BASE}/user/transfer/pix`, // “Transferências”
     myLimits: () => `${LEGACY_BASE}/user/transfer/log`, // “Meus limites”
     payments: () => `${LEGACY_BASE}/user/billet`, // “Pagamentos”
     charges: () => `${LEGACY_BASE}/user/receipt/history`, // “Cobrança”
     p2p: () => `${LEGACY_BASE}/user/transfer/own`, // “P2P”
-    pdv: () => `${LEGACY_BASE}/user/limites`, // “PDS”
+    pdv: () => `${LEGACY_BASE}/user/smspos/show`, // “PDV”
     transactions: () => `${LEGACY_BASE}/user/transactions`, // “Transações”
+
+    // Mais
+    account:      () => `${LEGACY_BASE}/user/profile-setting`, // “Minha Conta”
+    apis:         () => `${LEGACY_BASE}/user/apis`, // “API’s”
+    referrals:    () => `${LEGACY_BASE}/user/referees`, // “Indicações”
+    support:      () => `${LEGACY_BASE}/support`, // “Suporte”
   },
 
   eCommerce: {
