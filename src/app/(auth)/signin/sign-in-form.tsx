@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { signIn, getSession } from 'next-auth/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Checkbox, Password, Button, Input, Text } from 'rizzui';
+import { Checkbox, Password, Button, Input, Text, PinCode } from 'rizzui';
 import { Form } from '@core/ui/form';
 import { routes } from '@/config/routes';
 import { loginSchema, LoginSchema } from '@/validators/login.schema';
@@ -73,6 +73,26 @@ export default function SignInForm() {
                 Esqueceu a senha?
               </Link>
             </div>
+
+            {/* —— Bloco de Captcha + OTP —— */}
+            <div className="flex w-full items-center justify-center space-x-12">
+              {/* 1) Espaço em branco para os dígitos do captcha */}
+              <div className="flex-shrink-0 flex items-center justify-center w-36 h-12 bg-gray-100 rounded-lg">
+                {/* aqui, no futuro, você pode usar <Image src={captcha} /> */}
+              </div>
+
+              {/* 2) Entrada do OTP */}
+              <div className="flex-shrink-0 flex items-center justify-center w-40 h-12 bg-white rounded-lg">
+                <PinCode
+                  variant="outline"
+                  size="lg"
+                  className="w-full"
+                /* setValue se necessário */
+                />
+              </div>
+            </div>
+            {/* ———————————————— */}
+
             <Button type="submit" className="w-full">
               Entrar
             </Button>
