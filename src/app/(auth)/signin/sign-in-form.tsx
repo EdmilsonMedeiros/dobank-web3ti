@@ -70,17 +70,17 @@ export default function SignInForm() {
             <div className="flex items-center justify-between">
               <Checkbox {...register('rememberMe')} label="Remember Me" />
               <Link href={routes.auth.forgotPassword1}>
-                Forget Password?
+                Esqueceu a senha?
               </Link>
             </div>
             <Button type="submit" className="w-full">
-              Sign in
+              Entrar
             </Button>
           </div>
         )}
       </Form>
       <Text className="mt-6 text-center">
-        Don’t have an account? <Link href={routes.auth.signUp1}>Sign Up</Link>
+        Não tem uma conta? <Link href={routes.auth.signUp1}>Abra aqui</Link>
       </Text>
     </>
   );
