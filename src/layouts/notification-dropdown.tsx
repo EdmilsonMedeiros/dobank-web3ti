@@ -20,14 +20,14 @@ function NotificationsList({
     <div className="w-[320px] text-left sm:w-[360px] 2xl:w-[420px] rtl:text-right">
       <div className="mb-3 flex items-center justify-between ps-6">
         <Title as="h5" fontWeight="semibold">
-          Notifications
+          Notificações
         </Title>
-        <Checkbox
+        {/* <Checkbox
           size="sm"
           label="Mark all as read"
           labelWeight="normal"
           labelClassName="text-sm"
-        />
+        /> */}
       </div>
       <div className="custom-scrollbar overflow-y-auto scroll-smooth max-h-[420px]">
         <div className="grid cursor-pointer grid-cols-1 gap-1 ps-4">
@@ -72,7 +72,7 @@ function NotificationsList({
         onClick={() => setIsOpen(false)}
         className="-me-6 block px-6 pb-0.5 pt-3 text-center hover:underline"
       >
-        View All Activity
+        Ver mais
       </Link>
     </div>
   );
