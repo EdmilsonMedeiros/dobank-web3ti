@@ -3,11 +3,11 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/auth-options";
 import { env } from '@/env.mjs';
 import WelcomeBanner from "@core/components/banners/welcome";
 import HandWaveIcon from "@core/components/icons/hand-wave";
-import welcomeImg from "@public/shop-illustration.png";
+import welcomeImg from "@public/banner-illustration.png";
 import StatCards from "@shared/ecommerce/dashboard/stat-cards";
 import ProfitWidget from "@shared/ecommerce/dashboard/profit-widget";
 import RecentOrder from "@shared/ecommerce/dashboard/recent-order";
-import UpgradeStorage from "@shared/ecommerce/dashboard/upgrade-storage";
+// import UpgradeStorage from "@shared/ecommerce/dashboard/upgrade-storage";
 import QrCode from '@shared/ecommerce/dashboard/qr-code'
 
 import { Button } from "rizzui/button";
