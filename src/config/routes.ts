@@ -25,6 +25,9 @@ export const routes = {
     apis:         () => `${LEGACY_BASE}/user/apis`, // “API’s”
     referrals:    () => `${LEGACY_BASE}/user/referees`, // “Indicações”
     support:      () => `${LEGACY_BASE}/support`, // “Suporte”
+
+    // Outros
+    password:      () => `${LEGACY_BASE}/user/change-password`, // “Alterar a Senha”
   },
 
   eCommerce: {
