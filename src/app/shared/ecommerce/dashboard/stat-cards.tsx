@@ -1,19 +1,20 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
 import MetricCard from '@core/components/cards/metric-card';
-import { Text } from 'rizzui';
 import cn from '@core/utils/class-names';
-import {
-  PiCaretDoubleUpDuotone,
-  PiCaretDoubleDownDuotone,
-  PiGiftDuotone,
-  PiBankDuotone,
-  PiChartPieSliceDuotone,
-} from 'react-icons/pi';
 import { BarChart, Bar, ResponsiveContainer } from 'recharts';
-import { IoWalletOutline } from "react-icons/io5";
-import { HiOutlineArrowPath } from "react-icons/hi2";
-import { MdOutlinePendingActions } from "react-icons/md";
+import { IoWalletOutline } from 'react-icons/io5';
+import { HiOutlineArrowPath } from 'react-icons/hi2';
+import { MdOutlinePendingActions } from 'react-icons/md';
+import { useSession } from 'next-auth/react';
+import { formatBRL } from '@/utils/format';
+
+interface StatsResponse {
+  total_deposits: string;
+  transactions_count: number;
+  pending_receipts_count: number;
+}
 
 const orderData = [
   {
@@ -52,7 +53,6 @@ const orderData = [
     cost: 4300,
   },
 ];
-
 const salesData = [
   {
     day: 'Sunday',
@@ -90,7 +90,6 @@ const salesData = [
     cost: 4300,
   },
 ];
-
 const revenueData = [
   {
     day: 'Sunday',
@@ -129,54 +128,70 @@ const revenueData = [
   },
 ];
 
-const eComDashboardStatData = [
-  {
-    id: '1',
-    icon: <IoWalletOutline className="h-6 w-6" />,
-    title: 'Total em depósitos',
-    // metric: 'R$ 13.598,61',
-    metric: 'R$ N/A',
-    increased: true,
-    decreased: false,
-    percentage: '+32.40',
-    style: 'text-[#3872FA]',
-    fill: '#3872FA',
-    chart: orderData,
-  },
-  {
-    id: '2',
-    icon: <HiOutlineArrowPath className="h-6 w-6" />,
-    title: 'Todas as transações',
-    // metric: '102',
-    metric: 'N/A',
-    increased: false,
-    decreased: true,
-    percentage: '-4.40',
-    style: 'text-[#10b981]',
-    fill: '#10b981',
-    chart: salesData,
-  },
-  {
-    id: '3',
-    icon: <MdOutlinePendingActions className="h-6 w-6" />,
-    title: 'Recebimentos Pendentes',
-    // metric: '35',
-    metric: 'N/A',
-    increased: true,
-    decreased: false,
-    percentage: '+32.40',
-    style: 'text-[#fe9705]',
-    fill: '#fe9705',
-    chart: revenueData,
-  },
-];
-
 export default function StatCards({ className }: { className?: string }) {
+  const { data: session } = useSession();
+  const [stats, setStats] = useState<StatsResponse | null>(null);
+
+  useEffect(() => {
+    if (!session?.user?.accessToken) return;
+
+    (async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/user/stats`,
+          {
+            headers: {
+              Authorization: `Bearer ${session.user.accessToken}`,
+            },
+            cache: 'no-store',
+          }
+        );
+        if (!res.ok) throw new Error('Erro ao buscar estatísticas');
+        const data: StatsResponse = await res.json();
+        setStats(data);
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+  }, [session]);
+
+  const cards = [
+    {
+      id: '1',
+      icon: <IoWalletOutline className="h-6 w-6" />,
+      title: 'Total em depósitos',
+      metric: stats ? formatBRL(stats.total_deposits) : '...',
+      increased: true,
+      decreased: false,
+      style: 'text-[#3872FA]',
+      fill: '#3872FA',
+      chart: orderData,
+    },
+    {
+      id: '2',
+      icon: <HiOutlineArrowPath className="h-6 w-6" />,
+      title: 'Todas as transações',
+      metric: stats ? stats.transactions_count.toString() : '...',
+      style: 'text-[#10b981]',
+      fill: '#10b981',
+      chart: salesData,
+    },
+    {
+      id: '3',
+      icon: <MdOutlinePendingActions className="h-6 w-6" />,
+      title: 'Recebimentos Pendentes',
+      metric: stats ? stats.pending_receipts_count.toString() : '...',
+      style: 'text-[#fe9705]',
+      fill: '#fe9705',
+      chart: revenueData,
+    },
+  ];
+
   return (
     <div
       className={cn('grid grid-cols-1 gap-5 3xl:gap-8 4xl:gap-9', className)}
     >
-      {eComDashboardStatData.map((stat) => (
+      {cards.map((stat) => (
         <MetricCard
           key={stat.title + stat.id}
           title={stat.title}
@@ -186,7 +201,7 @@ export default function StatCards({ className }: { className?: string }) {
           iconClassName={cn(
             '[&>svg]:w-10 [&>svg]:h-8 lg:[&>svg]:w-11 lg:[&>svg]:h-9 w-auto h-auto p-0 bg-transparent -mx-1.5',
             stat.id === '1' &&
-              '[&>svg]:w-9 [&>svg]:h-7 lg:[&>svg]:w-[42px] lg:[&>svg]:h-[34px]',
+            '[&>svg]:w-9 [&>svg]:h-7 lg:[&>svg]:w-[42px] lg:[&>svg]:h-[34px]',
             stat.style
           )}
           chart={
@@ -199,28 +214,9 @@ export default function StatCards({ className }: { className?: string }) {
           chartClassName="hidden @[200px]:flex @[200px]:items-center h-14 w-24"
           className="@container [&>div]:items-center"
         >
-          {/* <Text className="mt-5 flex items-center border-t border-dashed border-muted pt-4 leading-none text-gray-500">
-            <Text
-              as="span"
-              className={cn(
-                'me-2 inline-flex items-center font-medium',
-                stat.increased ? 'text-green' : 'text-red'
-              )}
-            >
-              {stat.increased ? (
-                <PiCaretDoubleUpDuotone className="me-1 h-4 w-4" />
-              ) : (
-                <PiCaretDoubleDownDuotone className="me-1 h-4 w-4" />
-              )}
-              {stat.percentage}%
-            </Text>
-            <Text as="span" className="me-1 hidden @[240px]:inline-flex">
-              {stat.increased ? 'Increased' : 'Decreased'}
-            </Text>{' '}
-            last month
-          </Text> */}
         </MetricCard>
       ))}
     </div>
   );
 }
+
