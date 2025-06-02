@@ -8,9 +8,12 @@ import cn from "@core/utils/class-names";
 import { PiCaretDownBold } from "react-icons/pi";
 import { menuItems } from "@/layouts/hydrogen/menu-items";
 import StatusBadge from "@core/components/get-status-badge";
+import { useModal } from "@/app/shared/modal-views/use-modal";
+import CreateChargeForm from "@/app/shared/charge/charge-form";
 
 export function SidebarMenu() {
   const pathname = usePathname();
+  const { openModal, closeModal } = useModal();
 
   return (
     <div className="mt-4 pb-3 3xl:mt-6">
@@ -64,13 +67,13 @@ export function SidebarMenu() {
                       </div>
                     )}
                   >
-                    {item?.dropdownItems?.map((dropdownItem, index) => {
+                    {item?.dropdownItems?.map((dropdownItem, idx) => {
                       const isChildActive = pathname === (dropdownItem?.href as string);
 
                       return (
                         <Link
                           href={dropdownItem?.href}
-                          key={dropdownItem?.name + index}
+                          key={dropdownItem?.name + idx}
                           className={cn(
                             "mx-3.5 mb-0.5 flex items-center justify-between rounded-md px-3.5 py-2 font-medium capitalize last-of-type:mb-1 lg:last-of-type:mb-2 2xl:mx-5",
                             isChildActive
@@ -82,7 +85,9 @@ export function SidebarMenu() {
                             <span
                               className={cn(
                                 "me-[18px] ms-1 inline-flex h-1 w-1 rounded-full bg-current transition-all duration-200",
-                                isChildActive ? "bg-primary ring-[1px] ring-primary" : "opacity-40"
+                                isChildActive
+                                  ? "bg-primary ring-[1px] ring-primary"
+                                  : "opacity-40"
                               )}
                             />{" "}
                             <span className="truncate">{dropdownItem?.name}</span>
@@ -95,32 +100,70 @@ export function SidebarMenu() {
                     })}
                   </Collapse>
                 ) : (
-                  <Link
-                    href={item?.href}
-                    className={cn(
-                      "group relative mx-3 my-0.5 flex items-center justify-between rounded-md px-3 py-2 font-medium capitalize lg:my-1 2xl:mx-5 2xl:my-2",
-                      isActive
-                        ? "before:top-2/5 text-primary before:absolute before:-start-3 before:block before:h-4/5 before:w-1 before:rounded-ee-md before:rounded-se-md before:bg-primary 2xl:before:-start-5"
-                        : "text-gray-700 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-700/90"
-                    )}
-                  >
-                    <div className="flex items-center truncate">
-                      {item?.icon && (
-                        <span
-                          className={cn(
-                            "me-2 inline-flex h-5 w-5 items-center justify-center rounded-md [&>svg]:h-[20px] [&>svg]:w-[20px]",
-                            isActive
-                              ? "text-primary"
-                              : "text-gray-800 dark:text-gray-500 dark:group-hover:text-gray-700"
-                          )}
-                        >
-                          {item?.icon}
-                        </span>
+                  // 2) aqui verificamos se é “Emitir cobrança”. Se sim, renderizamos um button que abre o modal:
+                  item.name === "Emitir cobrança" ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        closeModal();
+                        openModal({
+                          view: <CreateChargeForm />,
+                          customSize: 600, // ajuste o tamanho conforme necessário
+                        });
+                      }}
+                      className={cn(
+                        "group relative mx-3 my-0.5 flex w-full items-center justify-between rounded-md px-3 py-2 font-medium capitalize lg:my-1 2xl:mx-5 2xl:my-2",
+                        isActive
+                          ? "before:top-2/5 text-primary before:absolute before:-start-3 before:block before:h-4/5 before:w-1 before:rounded-ee-md before:rounded-se-md before:bg-primary 2xl:before:-start-5"
+                          : "text-gray-700 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-700/90"
                       )}
-                      <span className="truncate">{item.name}</span>
-                    </div>
-                    {item?.badge?.length ? <StatusBadge status={item?.badge} /> : null}
-                  </Link>
+                    >
+                      <div className="flex items-center truncate">
+                        {item?.icon && (
+                          <span
+                            className={cn(
+                              "me-2 inline-flex h-5 w-5 items-center justify-center rounded-md [&>svg]:h-[20px] [&>svg]:w-[20px]",
+                              isActive
+                                ? "text-primary"
+                                : "text-gray-800 dark:text-gray-500 dark:group-hover:text-gray-700"
+                            )}
+                          >
+                            {item?.icon}
+                          </span>
+                        )}
+                        <span className="truncate">{item.name}</span>
+                      </div>
+                      {item?.badge?.length ? <StatusBadge status={item?.badge} /> : null}
+                    </button>
+                  ) : (
+                    // 3) caso não seja “Emitir cobrança”, mantemos o Link normal:
+                    <Link
+                      href={item?.href}
+                      className={cn(
+                        "group relative mx-3 my-0.5 flex items-center justify-between rounded-md px-3 py-2 font-medium capitalize lg:my-1 2xl:mx-5 2xl:my-2",
+                        isActive
+                          ? "before:top-2/5 text-primary before:absolute before:-start-3 before:block before:h-4/5 before:w-1 before:rounded-ee-md before:rounded-se-md before:bg-primary 2xl:before:-start-5"
+                          : "text-gray-700 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-700/90"
+                      )}
+                    >
+                      <div className="flex items-center truncate">
+                        {item?.icon && (
+                          <span
+                            className={cn(
+                              "me-2 inline-flex h-5 w-5 items-center justify-center rounded-md [&>svg]:h-[20px] [&>svg]:w-[20px]",
+                              isActive
+                                ? "text-primary"
+                                : "text-gray-800 dark:text-gray-500 dark:group-hover:text-gray-700"
+                            )}
+                          >
+                            {item?.icon}
+                          </span>
+                        )}
+                        <span className="truncate">{item.name}</span>
+                      </div>
+                      {item?.badge?.length ? <StatusBadge status={item?.badge} /> : null}
+                    </Link>
+                  )
                 )}
               </>
             ) : (
