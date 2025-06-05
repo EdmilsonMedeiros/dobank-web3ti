@@ -19,7 +19,7 @@ export default function Footer({ className }: FooterProps) {
       )}
     >
       <div className="flex shrink-0 gap-1.5">
-        {Array.from([0, 1, 2], (x) => (
+        {Array.from([0, 1], (x) => (
           <Button
             key={`step-${x}`}
             variant="text"
@@ -39,12 +39,14 @@ export default function Footer({ className }: FooterProps) {
             className="!w-auto"
             rounded="lg"
           >
-            Back
+            Voltar
           </Button>
         )}
-        <Button className="!w-auto" type="submit" rounded="lg">
-          {step === 1 ? 'Submit' : 'Next'}
-        </Button>
+        {step === 0 && (
+          <Button type="submit" rounded="lg">
+            Gerar Cobrança
+          </Button>
+        )}
       </div>
     </footer>
   );

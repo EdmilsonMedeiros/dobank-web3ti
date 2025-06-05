@@ -35,7 +35,7 @@ export default function ChargeHeader({
 
       {/* Área centralizada com ícone, título e descrição */}
       <div className="mx-auto flex max-w-md flex-col items-center gap-2.5 px-5 pb-7 pt-8 text-center md:px-7 md:pb-10 md:pt-12">
-        <ScheduleLightIcon className="w-12 text-gray-400" />
+        <TbReportMoney className="w-12 h-12 text-gray-400" />
 
         <Title
           as="h3"
