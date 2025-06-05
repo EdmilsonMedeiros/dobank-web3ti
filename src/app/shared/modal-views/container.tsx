@@ -20,7 +20,7 @@ export default function GlobalModal() {
       onClose={closeModal}
       customSize={customSize}
       containerClassName="dark:bg-gray-100"
-      overlayClassName="dark:bg-opacity-40 dark:backdrop-blur-lg"
+      overlayClassName="fixed inset-0 bg-black/30 backdrop-blur-sm"
       className="z-[9999] [&_.pointer-events-none]:overflow-visible"
     >
       {view}
