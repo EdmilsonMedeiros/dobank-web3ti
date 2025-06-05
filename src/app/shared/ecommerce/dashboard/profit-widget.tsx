@@ -50,31 +50,27 @@ export default function ProfitWidget({
           </Text>
 
           {/* Campos adicionais lado a lado, só se existir */}
-          {(hasBloqueado || hasMed) && (
-            <div className="flex mt-4 space-x-8">
-              {hasBloqueado && (
-                <div className="flex flex-col">
-                  <Text className="text-white/80 text-sm">
-                    Saldo bloqueado
-                  </Text>
-                  <Text className="text-white text-xl font-bold">
-                    {fmtBRL(balanceBloqueado!)}
-                  </Text>
-                </div>
-              )}
+          <div className="flex mt-4 space-x-8">
+            {hasBloqueado && (
+              <div className="flex flex-col">
+                <Text className="text-white/80 text-sm">Saldo bloqueado</Text>
+                <Text className="text-white text-xl font-bold">
+                  {fmtBRL(balanceBloqueado!)}
+                </Text>
+              </div>
+            )}
 
-              {hasMed && (
-                <div className="flex flex-col">
-                  <Text className="text-white/80 text-sm">
-                    Bloqueios MED
-                  </Text>
-                  <Text className="text-white text-xl font-bold">
-                    {fmtBRL(bloqueiosMed!)}
-                  </Text>
-                </div>
-              )}
-            </div>
-          )}
+            {hasMed && (
+              <div className="flex flex-col">
+                <Text className="text-white/80 text-sm">
+                  Bloqueios MED
+                </Text>
+                <Text className="text-white text-xl font-bold">
+                  {fmtBRL(bloqueiosMed!)}
+                </Text>
+              </div>
+            )}
+          </div>
 
           {/* Número da Conta */}
           <Text className="text-white/80 text-sm mt-4">
