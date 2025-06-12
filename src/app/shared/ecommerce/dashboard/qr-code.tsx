@@ -10,8 +10,8 @@ import { useCallback } from 'react';
 
 interface PaymentQrCodeProps {
   className?: string;
-  qrValue: string;      // base64 do PNG ou string a codificar
-  manualCode?: string;  // código em texto
+  qrValue?: string | null;      // agora opcional
+  manualCode?: string;  
 }
 
 export default function PaymentQrCode({
@@ -19,7 +19,7 @@ export default function PaymentQrCode({
   qrValue,
   manualCode,
 }: PaymentQrCodeProps) {
-  const code = manualCode ?? qrValue;
+  const code = manualCode ?? qrValue ?? '';
 
   const copyQr = useCallback(() => {
     navigator.clipboard.writeText(code);
@@ -29,8 +29,9 @@ export default function PaymentQrCode({
     navigator.clipboard.writeText(code);
   }, [code]);
 
-  // detecta se é um PNG base64 (começa com iVBOR)
-  const isBase64 = qrValue.startsWith('iVBOR');
+  // só checa startsWith se qrValue for string
+  const isBase64 =
+    typeof qrValue === 'string' && qrValue.startsWith('iVBOR');
 
   return (
     <WidgetCard className={cn('@container', className)}>
@@ -39,11 +40,13 @@ export default function PaymentQrCode({
         <Text>Compartilhe este código para receber seus pagamentos.</Text>
 
         <div onClick={copyQr} className="cursor-pointer">
-          {isBase64 ? (
+          {!qrValue ? (
+            <Text>QR Code não disponível</Text>
+          ) : isBase64 ? (
             <img
               src={`data:image/png;base64,${qrValue}`}
               alt="QR Code estático"
-              className="56 w-56"
+              className="h-56 w-56"
             />
           ) : (
             <QRCodeSVG value={qrValue} className="h-40 w-40" />
