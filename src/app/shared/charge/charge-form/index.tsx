@@ -1,13 +1,14 @@
-// /src/app/shared/charge/charge-form/index.tsx
 'use client';
 
 import dynamic from 'next/dynamic';
+import { SessionProvider } from 'next-auth/react';
 import { atomWithStorage, atomWithReset, useResetAtom } from 'jotai/utils';
 import { useAtom } from 'jotai';
 import { useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
-type FormDataType = {
+// 1) Tipo e estado do formulário
+export type FormDataType = {
   amount: string;
   description: string;
   clientName: string;
@@ -26,63 +27,85 @@ export const formDataAtom = atomWithStorage<FormDataType>(
   initialChargeData
 );
 
-enum Step {
-  StepOne,
-  StepTwo,
+// 2) Enum de passos e estado do stepper
+export enum Step {
+  StepOne = 0,
+  StepTwo = 1,
+  StepThree = 2,
 }
-
 const firstStep = Step.StepOne;
+
 export const stepperAtomCharge = atomWithReset<Step>(firstStep);
 
 export function useStepperCharge() {
   const [step, setStep] = useAtom(stepperAtomCharge);
   function gotoNextStep() {
-    setStep((prev) => prev + 1);
+    setStep(prev => prev + 1);
   }
   function gotoPrevStep() {
-    setStep((prev) => (prev > firstStep ? prev - 1 : prev));
+    setStep(prev => (prev > firstStep ? prev - 1 : prev));
   }
   function resetStepper() {
     setStep(firstStep);
   }
-  return {
-    step,
-    setStep,
-    resetStepper,
-    gotoNextStep,
-    gotoPrevStep,
-  };
+  return { step, setStep, resetStepper, gotoNextStep, gotoPrevStep };
 }
 
+// 3) Atomos para guardar as respostas da API
+export const depositResponseAtom = atomWithReset<{
+  trx: string;
+  amount: number;
+  charge: number;
+  payable: number;
+} | null>(null);
+
+export const confirmResponseAtom = atomWithReset<{
+  error: boolean;
+  message?: string;
+  trx: string;
+  original_value: number;
+  image_base64: string;
+  copy_code: string;
+} | null>(null);
+
+// 4) Import dinâmico dos componentes de cada step
 const ChargeStepOne = dynamic(() => import('./step-one'), { ssr: false });
 const ChargeStepTwo = dynamic(() => import('./step-two'), { ssr: false });
+const ChargeStepThree = dynamic(() => import('./step-three'), { ssr: false });
 
 const MAP_STEP_TO_COMPONENT = {
   [Step.StepOne]: ChargeStepOne,
   [Step.StepTwo]: ChargeStepTwo,
+  [Step.StepThree]: ChargeStepThree,
 };
 
 export default function CreateChargeForm() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
   const [step] = useAtom(stepperAtomCharge);
   const [, setFormData] = useAtom(formDataAtom);
-  const resetStepAtom = useResetAtom(stepperAtomCharge);
+  const resetStep = useResetAtom(stepperAtomCharge);
+  const [, resetDeposit] = useAtom(depositResponseAtom);
+  const [, resetConfirm] = useAtom(confirmResponseAtom);
 
   useEffect(() => {
-    // sempre que trocar de rota (ou o modal for fechado), resetamos
-    resetStepAtom();
+    // resetar quando modal fecha ou rota muda
+    resetStep();
     setFormData(initialChargeData);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, searchParams]);
+    resetDeposit();
+    resetConfirm();
+  }, [pathname, searchParams, resetStep, setFormData, resetDeposit, resetConfirm]);
 
   const Component = MAP_STEP_TO_COMPONENT[step];
 
   return (
-    <div className="relative flex justify-center md:items-center">
-      <div className="w-full max-w-lg">
-        <Component />
+    <SessionProvider>
+      <div className="relative flex justify-center md:items-center">
+        <div className="w-full max-w-lg">
+          <Component />
+        </div>
       </div>
-    </div>
+    </SessionProvider>
   );
 }

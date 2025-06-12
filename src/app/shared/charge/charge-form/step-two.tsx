@@ -2,56 +2,94 @@
 'use client';
 
 import { useAtom } from 'jotai';
-import { Textarea, Input, Button, Text, Title } from 'rizzui';
-import { FaRegCopy } from 'react-icons/fa';
+import { useSession } from 'next-auth/react';
+import { Text, Title, Button } from 'rizzui';
 import ChargeHeader from './header';
-import { formDataAtom, useStepperCharge } from '@/app/shared/charge/charge-form';
-import { useModal } from '@/app/shared/modal-views/use-modal';
-import cn from '@core/utils/class-names';
-import { useCallback } from 'react';
-import ChargeFooter from './footer';
+import { depositResponseAtom, confirmResponseAtom } from './index';
+import { useStepperCharge } from './index';
 
 export default function ChargeStepTwo() {
-  const { setStep } = useStepperCharge();
-  const { closeModal } = useModal();
-  const [formData] = useAtom(formDataAtom);
-  // const code = formData.pix_payload || '';
+  const { data: session } = useSession();
+  const [deposit] = useAtom(depositResponseAtom);
+  const [, setConfirm] = useAtom(confirmResponseAtom);
+  const { gotoNextStep, gotoPrevStep } = useStepperCharge();
 
-  // const copyCode = useCallback(() => {
-  //   navigator.clipboard.writeText(code);
-  // }, [code]);
+  if (!deposit) {
+    return (
+      <div className="flex items-center justify-center p-6">
+        <Text>Carregando dados da cobrança...</Text>
+      </div>
+    );
+  }
 
-  const handleClose = () => {
-    closeModal();
-    setStep(0);
+  const handleConfirm = async () => {
+    let json;
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/deposits/${deposit.trx}/confirm`,
+        {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.user.accessToken}`,
+          },
+          body: JSON.stringify({}),  // corpo vazio, mas agora o Laravel vai interpretar como JSON
+        }
+      );
+      
+      // if (!res.ok) {
+      //   console.error('Confirm API retornou status:', res.status);
+      // }
+      json = await res.json();
+    } catch (err) {
+      console.error('Erro na requisição:', err);
+      json = {
+        error: true,
+        message: 'Erro de rede ao confirmar.',
+        trx: deposit.trx,
+        original_value: deposit.payable,
+        image_base64: '',
+        copy_code: '',
+      };
+    }
+
+    setConfirm({
+      error: Boolean(json.error),
+      message: json.message,
+      trx: json.trx || deposit.trx,
+      original_value: json.original_value ?? deposit.payable,
+      image_base64: json.image_base64 ?? '',
+      copy_code: json.copy_code ?? '',
+    });
+
+    if (!json.error) {
+      gotoNextStep();
+    }
   };
 
   return (
     <div className="flex flex-col">
-      {/* Cabeçalho com “Emitir cobrança” e botão X */}
       <ChargeHeader
         title="Emitir cobrança"
-        description="Copie o código manualmente abaixo para compartilhar e receber o pagamento."
+        description="Confira os detalhes e confirme."
       />
 
-      {/* Conteúdo: apenas o campo de texto com o código e o botão de copiar */}
-      <div className="px-5 pb-6 pt-5 md:px-7 md:pb-9 md:pt-7 flex flex-col items-center">
-
-        <div className={cn('flex w-full max-w-md items-center space-x-2')}>
-          <input
-            type="text"
-            readOnly
-            // value={code}
-            className="flex-grow cursor-text rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800"
-          />
-          <Button className="px-3 py-2">
-            <FaRegCopy />
-          </Button>
-        </div>
+      <div className="px-5 pb-6 pt-5 md:px-7 md:pb-9 md:pt-7 space-y-3">
+        <Title as="h4">Transação: {deposit.trx}</Title>
+        <Text>Valor: R$ {deposit.amount.toFixed(2)}</Text>
+        <Text>Taxa: R$ {deposit.charge.toFixed(2)}</Text>
+        <Text>Total a pagar: R$ {deposit.payable.toFixed(2)}</Text>
       </div>
 
-      {/* Footer próprio: botão “Fechar” */}
-      <ChargeFooter />
+      <footer className="flex items-center justify-between border-t px-5 py-5">
+        <Button variant="outline" onClick={gotoPrevStep} rounded="lg">
+          Voltar
+        </Button>
+        <Button onClick={handleConfirm} rounded="lg">
+          Confirmar
+        </Button>
+      </footer>
     </div>
   );
 }
