@@ -109,7 +109,7 @@ export default function RecentOrder({
           headerCellClassName: 'first:ps-6',
         }}
       />
-      <TablePagination table={table} className="p-4" />
+      {/* <TablePagination table={table} className="p-4" /> */}
     </WidgetCard>
   );
 }
