@@ -14,7 +14,8 @@ export const routes = {
     dashboard: "/dashboard", // “Dashboard”
     transfers: () => `${LEGACY_BASE}/user/transfer/pix`, // “Transferências”
     myLimits: () => `${LEGACY_BASE}/user/transfer/log`, // “Meus limites”
-    payments: () => `${LEGACY_BASE}/user/billet`, // “Pagamentos”
+    // payments: () => `${LEGACY_BASE}/user/billet`, // “Pagamentos”
+    payments: () => "/payments", // “Pagamentos”
     charges: () => `${LEGACY_BASE}/user/receipt/history`, // “Cobrança”
     p2p: () => `${LEGACY_BASE}/user/transfer/own`, // “P2P”
     pdv: () => `${LEGACY_BASE}/user/smspos/show`, // “PDV”
