@@ -16,7 +16,7 @@ export default async function PaymentsPage() {
 
   // 3. Faz fetch dos dados do usuário
   const apiBase = env.NEXT_PUBLIC_API_BASE_URL;
-  const res = await fetch(`${apiBase}/user`, {
+  const res = await fetch(`${apiBase}/user/billets`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
@@ -25,19 +25,18 @@ export default async function PaymentsPage() {
   }
 
   // 4. Extrai user e suas transações
-  const { user } = (await res.json()) as {
-    user: {
-      transactions: Array<{
-        id: number;
-        amount: string;
-        charge: string;
-        post_balance: string;
-        trx_type: "+" | "-";
-        trx: string;
-        details: string;
-        created_at: string;
-      }>;
-    };
+  const { data: billets } = (await res.json()) as {
+    success: boolean;
+    pageTitle: string;
+    data: Array<{
+      id: number;
+      barcode: string;
+      valor: string;
+      status: string;
+      created_at: string;
+      updated_at: string;
+      lote_id: string;
+    }>;
   };
 
   return (
@@ -46,7 +45,7 @@ export default async function PaymentsPage() {
 
       <RecentOrder
         className="w-full"
-        transactions={user.transactions}
+        transactions={billets}
       />
     </div>
   );

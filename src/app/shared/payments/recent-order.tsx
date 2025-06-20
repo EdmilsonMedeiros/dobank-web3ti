@@ -10,25 +10,26 @@ import { Input } from 'rizzui';
 import { PiMagnifyingGlassBold } from 'react-icons/pi';
 import cn from '@core/utils/class-names';
 
-type Transaction = {
+type Boleto = {
   id: number;
-  amount: string;
-  charge: string;
-  post_balance: string;
-  trx_type: '+' | '-';
-  trx: string;
-  details: string;
+  barcode: string;
+  valor: string;
+  status: string;
   created_at: string;
+  updated_at: string;
+  lote_id: string;
 };
 
 type Row = {
   id: number;
   date: string;
-  reference: string;
-  details: string;
-  amount: string;
-  postBalance: string;
-  status: string;
+  reference: string;   // barcode
+  details: string;     // lote_id
+  amount: string;      // valor formatado
+  postBalance: string; // não aplicável aqui, deixamos em branco
+  status: string;      // status
+  date_verify: string;
+
 };
 
 export default function RecentOrder({
@@ -36,37 +37,36 @@ export default function RecentOrder({
   transactions,
 }: {
   className?: string;
-  transactions: Transaction[];
+  transactions: Boleto[];
 }) {
-  // 1) helper pra formatar BRL igual ao ProfitWidget
-  const fmtBRL = (value: string) =>
+  const fmtBRL = (v: string) =>
     new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
-      minimumFractionDigits: 2,
-    }).format(Number(value));
+    }).format(Number(v));
 
-  // 2) transformar a API pro shape que a tabela espera
-  const data: Row[] = useMemo(() => {
-    return transactions.map((tx) => {
-      const sign = tx.trx_type === '-' ? '-' : '';
-      return {
-        id: tx.id,
-        date: new Date(tx.created_at).toLocaleDateString('pt-BR', {
+    const data: Row[] = useMemo(() => {
+      return transactions.map((b) => ({
+        id: b.id,
+        date: new Date(b.created_at).toLocaleDateString('pt-BR', {
           timeZone: 'America/Sao_Paulo',
           day: '2-digit',
           month: '2-digit',
           year: 'numeric',
         }),
-        reference: tx.trx,
-        details: tx.details,
-        // aplica o fmtBRL e preserva o sinal + ou –
-        amount: `${sign}${fmtBRL(tx.amount)}`,
-        postBalance: fmtBRL(tx.post_balance),
-        status: tx.trx_type === '+' ? 'PIX_IN' : 'TRANSFER_OTHER_BANK',
-      };
-    });
-  }, [transactions]);
+        reference: b.barcode,
+        details: b.lote_id,
+        amount: fmtBRL(b.valor),
+        postBalance: '',       // opcional, pode deixar em branco ou remover coluna
+        status: b.status,      // ex: "SUCESSO", "FINALIZADO"
+        date_verify: new Date(b.updated_at).toLocaleDateString('pt-BR', {
+          timeZone: 'America/Sao_Paulo',
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        }),
+      }));
+    }, [transactions]);
 
   const { table, setData } = useTanStackTable<Row>({
     tableData: data,
@@ -92,7 +92,7 @@ export default function RecentOrder({
           type="search"
           clearable
           inputClassName="h-[36px]"
-          placeholder="Buscar transação..."
+          placeholder="Buscar boleto..."
           onClear={() => table.setGlobalFilter('')}
           value={table.getState().globalFilter ?? ''}
           prefix={<PiMagnifyingGlassBold className="size-4" />}
