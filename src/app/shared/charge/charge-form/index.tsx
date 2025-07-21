@@ -93,8 +93,8 @@ export default function CreateChargeForm() {
     // resetar quando modal fecha ou rota muda
     resetStep();
     setFormData(initialChargeData);
-    resetDeposit();
-    resetConfirm();
+    // resetDeposit();
+    // resetConfirm();
   }, [pathname, searchParams, resetStep, setFormData, resetDeposit, resetConfirm]);
 
   const Component = MAP_STEP_TO_COMPONENT[step];
