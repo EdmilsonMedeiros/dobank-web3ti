@@ -99,7 +99,7 @@ export const authOptions: NextAuthOptions = {
 
         // 3) Retorna o objeto que o NextAuth vai guardar no JWT
         return {
-          id: user.id,
+          id: String(user.id),
           email: user.email,
           name: `${user.firstname} ${user.lastname}`,
           accessToken: access_token,
