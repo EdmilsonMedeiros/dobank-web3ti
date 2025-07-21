@@ -100,11 +100,12 @@ function ProfileMenuPopover({ children }: React.PropsWithChildren<{}>) {
     </Popover>
   );
 }
+// routes.core.account()
 
 const menuItems = [
   {
     name: 'Minha Conta',
-    href: routes.core.account(),
+    href: routes.core.profile,
   },
   {
     name: 'Alterar Senha',

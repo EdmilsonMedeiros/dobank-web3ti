@@ -12,6 +12,9 @@ export const routes = {
     // Geral
     createCharge: "/dashboard?", // “Emitir Cobrança”
     dashboard: "/dashboard", // “Dashboard”
+
+    profile: "/profile", // “Minha Conta”
+    
     transfers: () => `${LEGACY_BASE}/user/transfer/pix`, // “Transferências”
     myLimits: () => `${LEGACY_BASE}/user/transfer/log`, // “Meus limites”
     // payments: () => `${LEGACY_BASE}/user/billet`, // “Pagamentos”
