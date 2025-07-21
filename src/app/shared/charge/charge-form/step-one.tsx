@@ -28,13 +28,18 @@ export default function ChargeStepOne() {
   const [formData, setFormData] = useAtom(formDataAtom);
   const [, setDeposit] = useAtom(depositResponseAtom);
 
-  const { control, formState: { errors }, handleSubmit } = useForm<FormDataType>({
-    resolver: zodResolver<FormDataType>(schema),
+  const { control, formState: { errors }, handleSubmit } = useForm({
+    resolver: zodResolver(schema) as any,
     defaultValues: formData,
   });
 
   const onSubmit: SubmitHandler<FormDataType> = async data => {
-    setFormData({ amount: data.amount, description: data.description || '' });
+    setFormData({
+      ...formData, // Mantém os valores existentes
+      amount: data.amount,
+      description: data.description || ''
+    });
+    
     const parsed = Number(data.amount.replace(/\./g, '').replace(',', '.'));
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/deposits`, {
       method: 'POST',

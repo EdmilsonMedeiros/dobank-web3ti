@@ -11,6 +11,11 @@ import { CategoryDataType } from './table';
 
 const columnHelper = createColumnHelper<CategoryDataType>();
 
+type CategoryTableMeta = {
+  handleDeleteRow?: (row: CategoryDataType) => void;
+  handleMultipleDelete?: (rows: CategoryDataType[]) => void;
+};
+
 export const categoriesColumns = [
   columnHelper.display({
     id: 'checked',
@@ -90,7 +95,7 @@ export const categoriesColumns = [
         <DeletePopover
           title={`Delete the category`}
           description={`Are you sure you want to delete this #${row.original.id} category?`}
-          onDelete={() => meta?.handleDeleteRow?.(row.original)}
+          onDelete={() => (meta as CategoryTableMeta)?.handleDeleteRow?.(row.original)}
         />
       </div>
     ),

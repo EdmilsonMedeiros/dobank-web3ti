@@ -22,10 +22,10 @@ export default function CategoryTable() {
         },
       },
       meta: {
-        handleDeleteRow: (row) => {
+        handleDeleteRow: (row: CategoryDataType) => {
           setData((prev) => prev.filter((r) => r.id !== row.id));
         },
-        handleMultipleDelete: (rows) => {
+        handleMultipleDelete: (rows: CategoryDataType[]) => {
           setData((prev) => prev.filter((r) => !rows.includes(r)));
         },
       },
