@@ -29,7 +29,7 @@ export default function ChargeStepOne() {
   const [, setDeposit] = useAtom(depositResponseAtom);
 
   const { control, formState: { errors }, handleSubmit } = useForm<FormDataType>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver<FormDataType>(schema),
     defaultValues: formData,
   });
 
