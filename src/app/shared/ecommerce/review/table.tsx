@@ -10,6 +10,11 @@ import Filters from './filters';
 
 export type ReviewsDataType = (typeof productReviews)[number];
 
+interface TableMeta {
+  handleDeleteRow: (row: ReviewsDataType) => void;
+  handleMultipleDelete: (rows: ReviewsDataType[]) => void;
+}
+
 export default function ReviewsTable() {
   const { table, setData } = useTanStackTable<ReviewsDataType>({
     tableData: productReviews,
@@ -22,13 +27,13 @@ export default function ReviewsTable() {
         },
       },
       meta: {
-        handleDeleteRow: (row) => {
+        handleDeleteRow: (row: ReviewsDataType) => {
           setData((prev) => prev.filter((r) => r.id !== row.id));
         },
-        handleMultipleDelete: (rows) => {
+        handleMultipleDelete: (rows: ReviewsDataType[]) => {
           setData((prev) => prev.filter((r) => !rows.includes(r)));
         },
-      },
+      } as TableMeta,
       enableColumnResizing: false,
     },
   });

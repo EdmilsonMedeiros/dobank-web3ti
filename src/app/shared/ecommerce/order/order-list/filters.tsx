@@ -6,7 +6,7 @@ import StatusField from '@core/components/controlled-table/status-field';
 import { FilterDrawerView } from '@core/components/controlled-table/table-filter';
 import ToggleColumns from '@core/components/table-utils/toggle-columns';
 import { getDateRangeStateValues } from '@core/utils/get-formatted-date';
-import { type Table as ReactTableType } from '@tanstack/react-table';
+import { type Table } from '@tanstack/react-table';
 import { useState } from 'react';
 import {
   PiFunnel,
@@ -15,6 +15,7 @@ import {
   PiTrashDuotone,
 } from 'react-icons/pi';
 import { Badge, Button, Flex, Input, Text } from 'rizzui';
+import { OrdersDataType } from '@/types/order';
 
 const statusOptions = [
   {
@@ -35,19 +36,21 @@ const statusOptions = [
   },
 ];
 
-interface TableToolbarProps<T extends Record<string, any>> {
-  table: ReactTableType<T>;
+interface TableToolbarProps {
+  table: Table<OrdersDataType>;
 }
 
-export default function Filters<TData extends Record<string, any>>({
-  table,
-}: TableToolbarProps<TData>) {
+export default function Filters({ table }: TableToolbarProps) {
   const [openDrawer, setOpenDrawer] = useState(false);
   const isMultipleSelected = table.getSelectedRowModel().rows.length > 1;
 
-  const {
-    options: { meta },
-  } = table;
+  const handleMultipleDelete = () => {
+    const selectedRows = table.getSelectedRowModel().rows;
+    selectedRows.forEach((row) => {
+      const meta = table.options.meta as { handleDeleteRow?: (row: OrdersDataType) => void };
+      meta?.handleDeleteRow?.(row.original);
+    });
+  };
 
   return (
     <Flex align="center" justify="between" className="mb-4">
@@ -78,12 +81,7 @@ export default function Filters<TData extends Record<string, any>>({
             color="danger"
             variant="outline"
             className="h-[34px] gap-2 text-sm"
-            onClick={() =>
-              meta?.handleMultipleDelete &&
-              meta.handleMultipleDelete(
-                table.getSelectedRowModel().rows.map((r) => r.original.id)
-              )
-            }
+            onClick={handleMultipleDelete}
           >
             <PiTrash size={18} />
             Delete
@@ -105,9 +103,7 @@ export default function Filters<TData extends Record<string, any>>({
   );
 }
 
-function FilterElements<T extends Record<string, any>>({
-  table,
-}: TableToolbarProps<T>) {
+function FilterElements({ table }: TableToolbarProps) {
   const priceFieldValue = (table.getColumn('amount')?.getFilterValue() ?? [
     '',
     '',

@@ -8,6 +8,7 @@ import { ThemeProvider, JotaiProvider } from "@/app/shared/theme-provider";
 import GlobalDrawer from "@/app/shared/drawer-views/container";
 import GlobalModal from "@/app/shared/modal-views/container";
 import AuthProvider from "@/app/api/auth/[...nextauth]/auth-provider";
+import { CartProvider } from "@/store/quick-cart/cart.context";
 
 import "./globals.css";
 
@@ -28,7 +29,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <JotaiProvider>
             {/* SessionProvider via seu AuthProvider */}
             <AuthProvider session={undefined}>
-              <ConditionalLayout>{children}</ConditionalLayout>
+              <CartProvider>
+                <ConditionalLayout>{children}</ConditionalLayout>
+              </CartProvider>
             </AuthProvider>
             <GlobalDrawer />
             <GlobalModal />

@@ -3,11 +3,11 @@
 import { getStatusBadge } from '@core/components/table-utils/get-status-badge';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Text } from 'rizzui';
-import { Row as OrdersDataType } from '@/app/shared/payments/recent-order';
+import { PaymentRow } from '@/app/shared/payments/recent-order';
 
-const columnHelper = createColumnHelper<OrdersDataType>();
+const columnHelper = createColumnHelper<PaymentRow>();
 
-export const ordersColumns = () => [
+export const ordersColumns = [
   columnHelper.display({
     id: 'id',
     size: 80,

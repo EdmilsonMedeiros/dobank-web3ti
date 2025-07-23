@@ -16,6 +16,7 @@ import cn from '@core/utils/class-names';
 import { toCurrency } from '@core/utils/to-currency';
 import { formatDate } from '@core/utils/format-date';
 import usePrice from '@core/hooks/use-price';
+import { Address } from '@/types';
 
 const orderStatus = [
   { id: 1, label: 'Order Pending' },
@@ -101,11 +102,21 @@ export default function OrderView() {
   const orderNote = useAtomValue(orderNoteAtom);
   const billingAddress = useAtomValue(billingAddressAtom);
   const shippingAddress = useAtomValue(shippingAddressAtom);
+
+  const formatAddress = (address: Address | null) => {
+    if (!address) return '';
+    return `${address.firstName} ${address.lastName}`;
+  };
+
+  const formatFullAddress = (address: Address | null) => {
+    if (!address) return '';
+    return `${address.address}, ${address.city}, ${address.state}, ${address.zip}, ${address.country}`;
+  };
+
   return (
     <div className="@container">
       <div className="flex flex-wrap justify-center border-b border-t border-gray-300 py-4 font-medium text-gray-700 @5xl:justify-start">
         <span className="my-2 border-r border-muted px-5 py-0.5 first:ps-0 last:border-r-0">
-          {/* October 22, 2022 at 10:30 pm */}
           {formatDate(new Date(), 'MMMM D, YYYY')} at{' '}
           {formatDate(new Date(), 'h:mm A')}
         </span>
@@ -283,12 +294,10 @@ export default function OrderView() {
               as="h3"
               className="mb-2.5 text-base font-semibold @7xl:text-lg"
             >
-              {billingAddress?.customerName}
+              {formatAddress(billingAddress)}
             </Title>
             <Text as="p" className="mb-2 leading-loose last:mb-0">
-              {billingAddress?.street}, {billingAddress?.city},{' '}
-              {billingAddress?.state}, {billingAddress?.zip},{' '}
-              {billingAddress?.country}
+              {formatFullAddress(billingAddress)}
             </Text>
           </WidgetCard>
           {!isEmpty(shippingAddress) && (
@@ -300,12 +309,10 @@ export default function OrderView() {
                 as="h3"
                 className="mb-2.5 text-base font-semibold @7xl:text-lg"
               >
-                {shippingAddress?.customerName}
+                {formatAddress(shippingAddress)}
               </Title>
               <Text as="p" className="mb-2 leading-loose last:mb-0">
-                {shippingAddress?.street}, {shippingAddress?.city},{' '}
-                {shippingAddress?.state}, {shippingAddress?.zip},{' '}
-                {shippingAddress?.country}
+                {formatFullAddress(shippingAddress)}
               </Text>
             </WidgetCard>
           )}

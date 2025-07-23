@@ -6,7 +6,7 @@ import Table from '@core/components/table';
 import { CustomExpandedComponent } from '@core/components/table/custom/expanded-row';
 import { useTanStackTable } from '@core/components/table/custom/use-TanStack-Table';
 import TablePagination from '@core/components/table/pagination';
-import { OrdersDataType } from '@/app/shared/ecommerce/dashboard/recent-order';
+import { OrdersDataType } from '@/types/order';
 import Filters from './filters';
 import { TableVariantProps } from 'rizzui';
 
@@ -32,7 +32,7 @@ export default function OrderTable({
         },
       },
       meta: {
-        handleDeleteRow: (row) => {
+        handleDeleteRow(row: OrdersDataType) {
           setData((prev) => prev.filter((r) => r.id !== row.id));
         },
       },

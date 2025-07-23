@@ -8,6 +8,7 @@ import RecentOrder from '@shared/ecommerce/dashboard/recent-order'
 import UpgradeStorage from '@shared/ecommerce/dashboard/upgrade-storage'
 import HandWaveIcon from '@core/components/icons/hand-wave'
 import welcomeImg from '@public/shop-illustration.png'
+import { recentTransactions } from '@/data/recent-transactions'
 
 import { Button } from 'rizzui/button'
 import { FaRegCopy } from "react-icons/fa"
@@ -63,12 +64,18 @@ export default function Home() {
 
           <SalesReport className="w-full" />
 
-          <RecentOrder className="w-full" />
+          <RecentOrder className="w-full" transactions={recentTransactions} />
         </div>
 
         {/* Coluna Direita (30%) → */}
         <div className="flex flex-col space-y-6">
-          <ProfitWidget className="w-full h-auto" />
+          <ProfitWidget 
+            className="w-full h-auto" 
+            balance="1875.00"
+            accountNumber="0001-9"
+            balanceBloqueado="150.00"
+            bloqueiosMed="50.00"
+          />
 
           <QrCode
             qrValue="https://dobank.com.br?reference=viniciusaquino.tech"

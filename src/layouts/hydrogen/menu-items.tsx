@@ -36,10 +36,12 @@ export const menuItems = [
       {
         name: "Transferências",
         href: routes.core.transfers(),
+        badge: "",
       },
       {
         name: "Meus limites",
         href: routes.core.myLimits(),
+        badge: "",
       },
     ],
   },
@@ -59,12 +61,14 @@ export const menuItems = [
     name: "P2P",
     href: routes.core.p2p(),
     icon: <RiP2pFill />,
+    badge: "",
   },
 
   {
     name: "PDV",
     href: routes.core.pdv(),
     icon: <AiOutlineDashboard />,
+    badge: "",
   },
   {
     name: "MAIS",
@@ -78,22 +82,27 @@ export const menuItems = [
       {
         name: "Minha conta",
         href: routes.auth.signIn,
+        badge: "",
       },
       {
         name: "API's",
         href: routes.auth.signIn,
+        badge: "",
       },
       {
         name: "Indicações",
         href: routes.auth.signIn,
+        badge: "",
       },
       {
         name: "Suporte",
         href: routes.auth.signIn,
+        badge: "",
       },
       {
         name: "PDV",
         href: routes.auth.signIn,
+        badge: "",
       },
     ],
   },

@@ -20,7 +20,7 @@ type Boleto = {
   lote_id: string;
 };
 
-type Row = {
+export type PaymentRow = {
   id: number;
   date: string;
   reference: string;   // barcode
@@ -29,8 +29,11 @@ type Row = {
   postBalance: string; // não aplicável aqui, deixamos em branco
   status: string;      // status
   date_verify: string;
-
 };
+
+interface TableMeta {
+  handleDeleteRow: (row: PaymentRow) => void;
+}
 
 export default function RecentOrder({
   className,
@@ -45,7 +48,7 @@ export default function RecentOrder({
       currency: 'BRL',
     }).format(Number(v));
 
-    const data: Row[] = useMemo(() => {
+    const data: PaymentRow[] = useMemo(() => {
       return transactions.map((b) => ({
         id: b.id,
         date: new Date(b.created_at).toLocaleDateString('pt-BR', {
@@ -68,16 +71,16 @@ export default function RecentOrder({
       }));
     }, [transactions]);
 
-  const { table, setData } = useTanStackTable<Row>({
+  const { table, setData } = useTanStackTable<PaymentRow>({
     tableData: data,
-    columnConfig: ordersColumns(false),
+    columnConfig: ordersColumns,
     options: {
       initialState: { pagination: { pageIndex: 0, pageSize: 7 } },
       meta: {
-        handleDeleteRow: (row) => {
+        handleDeleteRow: (row: PaymentRow) => {
           setData((prev) => prev.filter((r) => r.id !== row.id));
         },
-      },
+      } as TableMeta,
       enableColumnResizing: false,
     },
   });

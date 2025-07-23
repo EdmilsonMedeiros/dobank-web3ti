@@ -9,6 +9,11 @@ import { getStatusBadge } from '@core/components/table-utils/get-status-badge';
 import { ReviewTableMoreAction } from '@core/components/table-utils/review-table-more';
 import { ReviewsDataType } from './table';
 
+interface TableMeta {
+  handleDeleteRow?: (row: ReviewsDataType) => void;
+  handleMultipleDelete?: (rows: ReviewsDataType[]) => void;
+}
+
 const columnHelper = createColumnHelper<ReviewsDataType>();
 
 export const productsReviewsColumns = [
@@ -109,10 +114,13 @@ export const productsReviewsColumns = [
       table: {
         options: { meta },
       },
-    }) => (
-      <ReviewTableMoreAction
-        onDelete={() => meta?.handleDeleteRow?.(row.original)}
-      />
-    ),
+    }) => {
+      const tableMeta = meta as TableMeta;
+      return (
+        <ReviewTableMoreAction
+          onDelete={() => tableMeta?.handleDeleteRow?.(row.original)}
+        />
+      );
+    },
   }),
 ];

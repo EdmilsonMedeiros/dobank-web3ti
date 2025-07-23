@@ -24,7 +24,7 @@ export default function StockReport({ className }: { className?: string }) {
         },
       },
       meta: {
-        handleDeleteRow: (row) => {
+        handleDeleteRow: (row: ProductsDataType) => {
           setData((prev) => prev.filter((r) => r.id !== row.id));
         },
       },

@@ -10,13 +10,16 @@ export interface Coupon {
 }
 
 export interface Address {
-  customerName?: string;
-  phoneNumber?: string;
-  country?: string;
-  state?: string;
-  city?: string;
-  zip?: string;
-  street?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  country: string;
+  state: string;
+  city: string;
+  zip: string;
+  company?: string;
 }
 
 export interface GoogleMapLocation {

@@ -12,6 +12,11 @@ import { TableClassNameProps } from '@core/components/table/table-types';
 import cn from '@core/utils/class-names';
 import { exportToCSV } from '@core/utils/export-to-csv';
 
+interface TableMeta {
+  handleDeleteRow: (row: ProductsDataType) => void;
+  handleMultipleDelete: (rows: ProductsDataType[]) => void;
+}
+
 export default function ProductsTable({
   pageSize = 5,
   hideFilters = false,
@@ -41,13 +46,13 @@ export default function ProductsTable({
         },
       },
       meta: {
-        handleDeleteRow: (row) => {
+        handleDeleteRow: (row: ProductsDataType) => {
           setData((prev) => prev.filter((r) => r.id !== row.id));
         },
-        handleMultipleDelete: (rows) => {
+        handleMultipleDelete: (rows: ProductsDataType[]) => {
           setData((prev) => prev.filter((r) => !rows.includes(r)));
         },
-      },
+      } as TableMeta,
       enableColumnResizing: false,
     },
   });

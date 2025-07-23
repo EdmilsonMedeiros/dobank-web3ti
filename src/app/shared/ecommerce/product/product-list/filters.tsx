@@ -7,10 +7,10 @@ import { FilterDrawerView } from '@core/components/controlled-table/table-filter
 import {
   renderOptionDisplayValue,
   statusOptions,
-} from '@/app/shared/invoice/form-utils';
+} from './form-utils';
 import ToggleColumns from '@core/components/table-utils/toggle-columns';
 import { getDateRangeStateValues } from '@core/utils/get-formatted-date';
-import { type Table as ReactTableType } from '@tanstack/react-table';
+import { type Table } from '@tanstack/react-table';
 import { useState } from 'react';
 import {
   PiFunnel,
@@ -20,8 +20,13 @@ import {
 } from 'react-icons/pi';
 import { Button, Flex, Input } from 'rizzui';
 
-interface TableToolbarProps<T extends Record<string, any>> {
-  table: ReactTableType<T>;
+interface TableMeta<TData> {
+  handleDeleteRow?: (row: TData) => void;
+  handleMultipleDelete?: (rows: TData[]) => void;
+}
+
+interface TableToolbarProps<TData extends Record<string, any>> {
+  table: Table<TData>;
 }
 
 export default function Filters<TData extends Record<string, any>>({
@@ -33,6 +38,15 @@ export default function Filters<TData extends Record<string, any>>({
   const {
     options: { meta },
   } = table;
+
+  const tableMeta = meta as TableMeta<TData> | undefined;
+
+  const handleMultipleDelete = () => {
+    if (tableMeta?.handleMultipleDelete) {
+      const selectedRows = table.getSelectedRowModel().rows.map(row => row.original);
+      tableMeta.handleMultipleDelete(selectedRows);
+    }
+  };
 
   return (
     <Flex align="center" justify="between" className="mb-4">
@@ -63,12 +77,7 @@ export default function Filters<TData extends Record<string, any>>({
             color="danger"
             variant="outline"
             className="h-[34px] gap-2 text-sm"
-            onClick={() =>
-              meta?.handleMultipleDelete &&
-              meta.handleMultipleDelete(
-                table.getSelectedRowModel().rows.map((r) => r.original.id)
-              )
-            }
+            onClick={handleMultipleDelete}
           >
             <PiTrash size={18} />
             Delete

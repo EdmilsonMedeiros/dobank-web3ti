@@ -1,9 +1,9 @@
 'use client';
 
-import { OrdersDataType } from '@/app/shared/ecommerce/dashboard/recent-order';
 import { getStatusBadge } from '@core/components/table-utils/get-status-badge';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Text } from 'rizzui';
+import { OrdersDataType } from '@/types/order';
 
 const columnHelper = createColumnHelper<OrdersDataType>();
 

@@ -23,7 +23,7 @@
 9:1  Warning: './index' import is duplicated.  no-duplicate-imports
 
 ./src/app/shared/ecommerce/dashboard/index.tsx
-36:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+37:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
 
 ./src/app/shared/ecommerce/dashboard/qr-code.tsx
 46:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
@@ -37,15 +37,15 @@
 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
 Failed to compile.
 
-./src/app/shared/ecommerce/checkout/index.tsx:29:8
-Type error: Cannot find module '@/store/checkout' or its corresponding type declarations.
+./src/types/table.ts:3:16
+Type error: Invalid module name in augmentation, module '@tanstack/table-core' cannot be found.
 
-[0m [90m 27 |[39m   orderNoteAtom[33m,[39m[0m
-[0m [90m 28 |[39m   shippingAddressAtom[33m,[39m[0m
-[0m[31m[1m>[22m[39m[90m 29 |[39m } [36mfrom[39m [32m'@/store/checkout'[39m[33m;[39m[0m
-[0m [90m    |[39m        [31m[1m^[22m[39m[0m
-[0m [90m 30 |[39m [36mimport[39m {[0m
-[0m [90m 31 |[39m   [33mCreateOrderInput[39m[33m,[39m[0m
-[0m [90m 32 |[39m   orderFormSchema[33m,[39m[0m
+[0m [90m 1 |[39m [36mimport[39m [32m'@tanstack/table-core'[39m[33m;[39m[0m
+[0m [90m 2 |[39m[0m
+[0m[31m[1m>[22m[39m[90m 3 |[39m declare module [32m'@tanstack/table-core'[39m {[0m
+[0m [90m   |[39m                [31m[1m^[22m[39m[0m
+[0m [90m 4 |[39m   [36minterface[39m [33mTableMeta[39m[33m<[39m[33mTData[39m[33m>[39m {[0m
+[0m [90m 5 |[39m     handleDeleteRow[33m?[39m[33m:[39m (row[33m:[39m [33mTData[39m) [33m=>[39m [36mvoid[39m[33m;[39m[0m
+[0m [90m 6 |[39m     handleMultipleDelete[33m?[39m[33m:[39m (rows[33m:[39m [33mTData[39m[]) [33m=>[39m [36mvoid[39m[33m;[39m[0m
 Next.js build worker exited with code: 1 and signal: null
  ELIFECYCLE  Command failed with exit code 1.

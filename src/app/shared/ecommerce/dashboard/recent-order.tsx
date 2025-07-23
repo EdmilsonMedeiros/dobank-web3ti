@@ -9,27 +9,7 @@ import { ordersColumns } from '@/app/shared/ecommerce/order/order-list/columns';
 import { Input } from 'rizzui';
 import { PiMagnifyingGlassBold } from 'react-icons/pi';
 import cn from '@core/utils/class-names';
-
-type Transaction = {
-  id: number;
-  amount: string;
-  charge: string;
-  post_balance: string;
-  trx_type: '+' | '-';
-  trx: string;
-  details: string;
-  created_at: string;
-};
-
-type Row = {
-  id: number;
-  date: string;
-  reference: string;
-  details: string;
-  amount: string;
-  postBalance: string;
-  status: string;
-};
+import { OrdersDataType, Transaction } from '@/types/order';
 
 export default function RecentOrder({
   className,
@@ -47,7 +27,7 @@ export default function RecentOrder({
     }).format(Number(value));
 
   // 2) transformar a API pro shape que a tabela espera
-  const data: Row[] = useMemo(() => {
+  const data: OrdersDataType[] = useMemo(() => {
     return transactions.map((tx) => {
       const sign = tx.trx_type === '-' ? '-' : '';
       return {
@@ -68,13 +48,13 @@ export default function RecentOrder({
     });
   }, [transactions]);
 
-  const { table, setData } = useTanStackTable<Row>({
+  const { table, setData } = useTanStackTable<OrdersDataType>({
     tableData: data,
     columnConfig: ordersColumns(false),
     options: {
       initialState: { pagination: { pageIndex: 0, pageSize: 7 } },
       meta: {
-        handleDeleteRow: (row) => {
+        handleDeleteRow: (row: OrdersDataType) => {
           setData((prev) => prev.filter((r) => r.id !== row.id));
         },
       },
