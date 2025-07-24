@@ -3,9 +3,9 @@ export const LEGACY_BASE = process.env.NEXT_PUBLIC_LEGACY_BASE_URL!.replace(/\/$
 export const routes = {
   auth: {
     signIn: "/signin",
-    signUp: "/signup",
+    signUp: "/sign-up",
     forgotPassword1: "/auth/forgot-password-1",
-    signUp1: "/auth/sign-up-1",
+    // signUp1: "/auth/sign-up-1",
   },
 
   core: {

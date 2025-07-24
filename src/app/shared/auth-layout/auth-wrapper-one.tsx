@@ -16,6 +16,7 @@ export default function AuthWrapperOne({
   bannerTitle,
   bannerDescription,
   description,
+  description2,
   pageImage,
   isSocialLoginActive = false,
   isSignIn = false,
@@ -23,6 +24,7 @@ export default function AuthWrapperOne({
   children: React.ReactNode;
   title: React.ReactNode;
   description?: string;
+  description2?: string;
   bannerTitle?: string;
   bannerDescription?: string;
   pageImage?: React.ReactNode;
@@ -80,6 +82,9 @@ export default function AuthWrapperOne({
               </Title>
               <Text className="leading-[1.85] text-gray-700 md:leading-loose lg:pe-8 2xl:pe-14">
                 {description}
+              </Text>
+              <Text className="mt-2 leading-[1.85] text-gray-700 md:leading-loose lg:pe-8 2xl:pe-14">
+                {description2}
               </Text>
             </div>
             {/* {isSocialLoginActive && (
