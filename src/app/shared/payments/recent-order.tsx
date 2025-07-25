@@ -20,7 +20,8 @@ type Boleto = {
   lote_id: string;
 };
 
-type Row = {
+// exportamos o Row para ser usado em columns.tsx
+export type Row = {
   id: number;
   date: string;
   reference: string;   // barcode
@@ -29,7 +30,6 @@ type Row = {
   postBalance: string; // não aplicável aqui, deixamos em branco
   status: string;      // status
   date_verify: string;
-
 };
 
 export default function RecentOrder({
@@ -45,28 +45,28 @@ export default function RecentOrder({
       currency: 'BRL',
     }).format(Number(v));
 
-    const data: Row[] = useMemo(() => {
-      return transactions.map((b) => ({
-        id: b.id,
-        date: new Date(b.created_at).toLocaleDateString('pt-BR', {
-          timeZone: 'America/Sao_Paulo',
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        }),
-        reference: b.barcode,
-        details: b.lote_id,
-        amount: fmtBRL(b.valor),
-        postBalance: '',       // opcional, pode deixar em branco ou remover coluna
-        status: b.status,      // ex: "SUCESSO", "FINALIZADO"
-        date_verify: new Date(b.updated_at).toLocaleDateString('pt-BR', {
-          timeZone: 'America/Sao_Paulo',
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        }),
-      }));
-    }, [transactions]);
+  const data: Row[] = useMemo(() => {
+    return transactions.map((b) => ({
+      id: b.id,
+      date: new Date(b.created_at).toLocaleDateString('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      }),
+      reference: b.barcode,
+      details: b.lote_id,
+      amount: fmtBRL(b.valor),
+      postBalance: '',       // opcional, pode deixar em branco ou remover coluna
+      status: b.status,      // ex: "SUCESSO", "FINALIZADO"
+      date_verify: new Date(b.updated_at).toLocaleDateString('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      }),
+    }));
+  }, [transactions]);
 
   const { table, setData } = useTanStackTable<Row>({
     tableData: data,
@@ -74,7 +74,7 @@ export default function RecentOrder({
     options: {
       initialState: { pagination: { pageIndex: 0, pageSize: 7 } },
       meta: {
-        handleDeleteRow: (row) => {
+        handleDeleteRow: (row: Row) => {
           setData((prev) => prev.filter((r) => r.id !== row.id));
         },
       },

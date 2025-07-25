@@ -7,7 +7,7 @@ import { Row as OrdersDataType } from '@/app/shared/payments/recent-order';
 
 const columnHelper = createColumnHelper<OrdersDataType>();
 
-export const ordersColumns = () => [
+export const ordersColumns = (expanded: boolean = true) => [
   columnHelper.display({
     id: 'id',
     size: 80,
