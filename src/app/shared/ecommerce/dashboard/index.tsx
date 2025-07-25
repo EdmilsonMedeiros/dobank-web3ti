@@ -69,12 +69,12 @@ export default function Home() {
 
           <SalesReport className="w-full" />
 
-          <RecentOrder className="w-full" />
+          {/* <RecentOrder className="w-full" transactions={[]}/> */}
         </div>
 
         {/* Coluna Direita (30%) → */}
         <div className="flex flex-col space-y-6">
-          <ProfitWidget className="w-full h-auto" />
+          {/* <ProfitWidget className="w-full h-auto" /> */}
 
           <QrCode
             qrValue="https://dobank.com.br?reference=viniciusaquino.tech"

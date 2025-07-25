@@ -10,6 +10,16 @@ import { Input } from 'rizzui';
 import { PiMagnifyingGlassBold } from 'react-icons/pi';
 import cn from '@core/utils/class-names';
 
+export type OrdersDataType = {
+  id: number;
+  date: string;
+  reference: string;
+  details: string;
+  amount: string;
+  postBalance: string;
+  status: string;
+};
+
 type Transaction = {
   id: number;
   amount: string;
@@ -21,16 +31,6 @@ type Transaction = {
   created_at: string;
 };
 
-type Row = {
-  id: number;
-  date: string;
-  reference: string;
-  details: string;
-  amount: string;
-  postBalance: string;
-  status: string;
-};
-
 export default function RecentOrder({
   className,
   transactions,
@@ -38,7 +38,6 @@ export default function RecentOrder({
   className?: string;
   transactions: Transaction[];
 }) {
-  // 1) helper pra formatar BRL igual ao ProfitWidget
   const fmtBRL = (value: string) =>
     new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -46,8 +45,7 @@ export default function RecentOrder({
       minimumFractionDigits: 2,
     }).format(Number(value));
 
-  // 2) transformar a API pro shape que a tabela espera
-  const data: Row[] = useMemo(() => {
+  const data: OrdersDataType[] = useMemo(() => {
     return transactions.map((tx) => {
       const sign = tx.trx_type === '-' ? '-' : '';
       return {
@@ -60,7 +58,6 @@ export default function RecentOrder({
         }),
         reference: tx.trx,
         details: tx.details,
-        // aplica o fmtBRL e preserva o sinal + ou –
         amount: `${sign}${fmtBRL(tx.amount)}`,
         postBalance: fmtBRL(tx.post_balance),
         status: tx.trx_type === '+' ? 'PIX_IN' : 'TRANSFER_OTHER_BANK',
@@ -68,14 +65,14 @@ export default function RecentOrder({
     });
   }, [transactions]);
 
-  const { table, setData } = useTanStackTable<Row>({
+  const { table, setData } = useTanStackTable<OrdersDataType>({
     tableData: data,
     columnConfig: ordersColumns(false),
     options: {
       initialState: { pagination: { pageIndex: 0, pageSize: 7 } },
       meta: {
-        handleDeleteRow: (row) => {
-          setData((prev) => prev.filter((r) => r.id !== row.id));
+        handleDeleteRow: (row: OrdersDataType) => {
+          setData(prev => prev.filter(r => r.id !== row.id))
         },
       },
       enableColumnResizing: false,
