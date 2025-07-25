@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { QRCodeSVG } from 'qrcode.react';
 import { Badge, Title, Text } from 'rizzui';
 import { Button } from 'rizzui/button';
@@ -11,7 +12,7 @@ import { useCallback } from 'react';
 interface PaymentQrCodeProps {
   className?: string;
   qrValue?: string | null;      // agora opcional
-  manualCode?: string;  
+  manualCode?: string;
 }
 
 export default function PaymentQrCode({
@@ -43,10 +44,13 @@ export default function PaymentQrCode({
           {!qrValue ? (
             <Text>QR Code não disponível</Text>
           ) : isBase64 ? (
-            <img
+            <Image
               src={`data:image/png;base64,${qrValue}`}
               alt="QR Code estático"
+              width={224}      // 56 * 4 = 224px
+              height={224}
               className="h-56 w-56"
+              unoptimized      // obrigatório para imagens base64
             />
           ) : (
             <QRCodeSVG value={qrValue} className="h-40 w-40" />

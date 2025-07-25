@@ -1,13 +1,12 @@
 import { routes } from "@/config/routes";
 import { DUMMY_ID } from "@/config/constants";
 
-import { TbReportMoney } from "react-icons/tb";
+import { TbReportMoney, TbCashRegister } from "react-icons/tb";
 import { LuPanelLeft } from "react-icons/lu";
 import { GoHome } from "react-icons/go";
 import { BsCashCoin } from "react-icons/bs";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { RiP2pFill } from "react-icons/ri";
-import { TbCashRegister } from "react-icons/tb";
 import { CiMoneyCheck1 } from "react-icons/ci";
 
 // Note: do not add href in the label object, it is rendering as label

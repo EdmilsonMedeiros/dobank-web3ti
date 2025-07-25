@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth-options";
 import { env } from '@/env.mjs';
@@ -69,7 +70,12 @@ export default async function Home() {
             description="Aqui está seu centro de operações: tudo o que você precisa para gerenciar seus pagamentos."
             media={
               <div className="absolute -bottom-6 end-4 hidden w-[300px] @2xl:block">
-                <img src={welcomeImg.src} alt="Shop illustration" />
+                <Image
+                  src={welcomeImg}
+                  alt="Shop illustration"
+                  fill
+                  className="object-contain"
+                />
               </div>
             }
             contentClassName="@2xl:max-w-[calc(100%-340px)]"

@@ -1,11 +1,11 @@
 'use client';
 
+import Image from 'next/image';
 import { useAtom } from 'jotai';
 import { FaRegCopy } from 'react-icons/fa';
 import { Text, Input, Button } from 'rizzui';
 import ChargeHeader from './header';
-import { confirmResponseAtom, Step } from './index';
-import { useStepperCharge } from './index';
+import { confirmResponseAtom, Step, useStepperCharge } from './index';
 import { useModal } from '@/app/shared/modal-views/use-modal';
 
 export default function ChargeStepThree() {
@@ -37,10 +37,13 @@ export default function ChargeStepThree() {
         {/* <Text>Valor Original: R$ {confirm.original_value.toFixed(2)}</Text> */}
 
         <div className="flex justify-center">
-          <img
+          <Image
             src={`data:image/png;base64,${confirm.image_base64}`}
             alt="QR Code"
+            width={192}      // 48 * 4 = 192px
+            height={192}     // mesma altura
             className="h-48 w-48"
+            unoptimized      // necessário para data URLs
           />
         </div>
 

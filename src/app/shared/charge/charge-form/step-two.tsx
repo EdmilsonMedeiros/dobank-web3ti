@@ -5,8 +5,7 @@ import { useAtom } from 'jotai';
 import { useSession } from 'next-auth/react';
 import { Text, Title, Button } from 'rizzui';
 import ChargeHeader from './header';
-import { depositResponseAtom, confirmResponseAtom } from './index';
-import { useStepperCharge } from './index';
+import { depositResponseAtom, confirmResponseAtom, useStepperCharge } from './index';
 
 export default function ChargeStepTwo() {
   const { data: session } = useSession();

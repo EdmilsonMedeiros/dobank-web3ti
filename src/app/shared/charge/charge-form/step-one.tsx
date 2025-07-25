@@ -8,8 +8,7 @@ import { useSession } from 'next-auth/react';
 import { Input, Textarea, FieldError } from 'rizzui';
 import ChargeHeader from './header';
 import ChargeFooter from './footer';
-import { formDataAtom, initialChargeData, depositResponseAtom } from './index';
-import { useStepperCharge } from './index';
+import { formDataAtom, initialChargeData, depositResponseAtom, useStepperCharge } from './index';
 import { formatCurrency } from '@/utils/formatCurrency';
 
 const schema = z.object({
@@ -34,7 +33,7 @@ export default function ChargeStepOne() {
   });
 
   const onSubmit: SubmitHandler<FormDataType> = async data => {
-    setFormData({ amount: data.amount, description: data.description || '' });
+    setFormData(prev => ({ ...prev, amount: data.amount, description: data.description || '' }));
     const parsed = Number(data.amount.replace(/\./g, '').replace(',', '.'));
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/deposits`, {
       method: 'POST',

@@ -86,8 +86,8 @@ export default function CreateChargeForm() {
   const [step] = useAtom(stepperAtomCharge);
   const [, setFormData] = useAtom(formDataAtom);
   const resetStep = useResetAtom(stepperAtomCharge);
-  const [, resetDeposit] = useAtom(depositResponseAtom);
-  const [, resetConfirm] = useAtom(confirmResponseAtom);
+  const resetDeposit = useResetAtom(depositResponseAtom);
+  const resetConfirm = useResetAtom(confirmResponseAtom);
 
   useEffect(() => {
     // resetar quando modal fecha ou rota muda
