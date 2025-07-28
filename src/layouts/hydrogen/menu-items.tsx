@@ -9,8 +9,22 @@ import { AiOutlineDashboard } from "react-icons/ai";
 import { RiP2pFill } from "react-icons/ri";
 import { CiMoneyCheck1 } from "react-icons/ci";
 
+interface DropdownItem {
+  name: string;
+  href: string;
+  badge?: string;
+}
+
+interface MenuItem {
+  name: string;
+  href?: string;
+  icon?: React.ReactNode;
+  badge?: string;
+  dropdownItems?: DropdownItem[];
+}
+
 // Note: do not add href in the label object, it is rendering as label
-export const menuItems = [
+export const menuItems: MenuItem[] = [
   // label start
   {
     name: "GERAL",
