@@ -22,7 +22,8 @@ export const routes = {
     transactions: () => `${LEGACY_BASE}/user/transactions`, // “Transações”
 
     // Mais
-    account:      () => `${LEGACY_BASE}/user/profile-setting`, // “Minha Conta”
+    // account:      () => `${LEGACY_BASE}/user/profile-setting`, // “Minha Conta”
+    account: "/profile", // “Dashboard”
     apis:         () => `${LEGACY_BASE}/user/apis`, // “API’s”
     referrals:    () => `${LEGACY_BASE}/user/referees`, // “Indicações”
     support:      () => `${LEGACY_BASE}/support`, // “Suporte”

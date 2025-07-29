@@ -90,7 +90,7 @@ export const menuItems: MenuItem[] = [
     dropdownItems: [
       {
         name: "Minha conta",
-        href: routes.auth.signIn,
+        href: routes.core.account,
       },
       {
         name: "API's",
