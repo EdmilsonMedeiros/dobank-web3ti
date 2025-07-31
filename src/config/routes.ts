@@ -6,6 +6,8 @@ export const routes = {
     signUp: "/sign-up",
     forgotPassword1: "/auth/forgot-password-1",
     // signUp1: "/auth/sign-up-1",
+    contapj1: "/register/contapj1",
+    endereco: "/register/endereco",
   },
 
   core: {

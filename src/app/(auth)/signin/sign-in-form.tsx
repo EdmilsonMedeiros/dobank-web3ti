@@ -102,7 +102,7 @@ export default function SignInForm() {
       <Text className="mt-6 text-center leading-loose text-gray-500 lg:mt-8 lg:text-start">
         Não tem uma conta?{' '}
         <Link
-          href={routes.auth.signUp}
+          href={routes.auth.contapj1}
           className="font-semibold text-gray-700 transition-colors hover:text-blue"
         >
           Abra uma aqui!

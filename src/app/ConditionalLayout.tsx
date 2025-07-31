@@ -10,7 +10,10 @@ export default function ConditionalLayout({ children }: { children: ReactNode })
     pathname === '/' ||
     pathname.startsWith('/landing') ||
     pathname.startsWith('/signin') ||
-    pathname.startsWith('/signup') ||
+    pathname.startsWith('/sign-up') ||
+    pathname.startsWith('/register/contapj1') ||
+    pathname.startsWith('/register/endereco') ||
+    pathname.startsWith('/register/senha') ||
     pathname.startsWith('/forgot-password')
 
   if (isPublicRoute) {
