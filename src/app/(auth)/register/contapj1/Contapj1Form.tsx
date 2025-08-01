@@ -7,7 +7,6 @@ import { Form } from '@core/ui/form';
 import { Controller } from 'react-hook-form';
 import { contapj1Schema, Contapj1FormData } from '@/validators/contapj1.schema';
 import { Input, Select, Button, Text } from 'rizzui';
-import { routes } from '@/config/routes';
 import { useState } from 'react';
 
 interface InitialData {
@@ -19,8 +18,8 @@ interface InitialData {
 
 export default function Contapj1Form({ initialData }: { initialData: InitialData }) {
   const router = useRouter();
-  const backTo = routes.auth.signIn;
-  const nextPath = routes.auth.endereco;
+  const backTo = '/auth/sign-in';
+  const nextPath = '/register/endereco';
 
   const [apiErrors, setApiErrors] = useState<Record<string, string[]>>({});
 
@@ -33,6 +32,7 @@ export default function Contapj1Form({ initialData }: { initialData: InitialData
     nomeResponsavel: '',
     sobrenomeResponsavel: '',
     email: '',
+    country: initialData.countries[initialData.mobile_code].country,
     country_code: initialData.mobile_code,
     mobile_code: `+${initialData.countries[initialData.mobile_code].dial_code}`,
     telefone: '',
@@ -40,22 +40,35 @@ export default function Contapj1Form({ initialData }: { initialData: InitialData
 
   const onSubmit = async (data: Contapj1FormData) => {
     setApiErrors({});
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/register/endereco`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/register/endereco`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',   // garante retorno JSON
+          },
+          body: JSON.stringify(data),
+        }
+      );
+      const json = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 422 && json.errors) {
+          setApiErrors(json.errors);
+        } else {
+          setApiErrors({ _: [json.message || 'Erro inesperado.'] });
+        }
+        return;
       }
-    );
-    const json = await res.json();
-    if (json.errors) {
-      // atualiza o estado e sai 
-      setApiErrors(json.errors);
-      return;
+
+      router.push(`${nextPath}?preCadastroId=${json.preCadastroId}`);
+    } catch (err) {
+      console.error(err);
+      setApiErrors({ _: ['Não foi possível conectar ao servidor.'] });
     }
-    // caso sucesso, redireciona para a próxima etapa
-    router.push(`${nextPath}?preCadastroId=${json.preCadastroId}`);
   };
 
   return (
@@ -67,24 +80,22 @@ export default function Contapj1Form({ initialData }: { initialData: InitialData
       >
         {({ register, control, formState: { errors } }) => (
           <div className="flex flex-col gap-x-4 gap-y-5 md:grid md:grid-cols-2 lg:gap-5">
+            {/* campos ocultos */}
+            <input type="hidden" {...register('preCadastroId')} />
+            <input type="hidden" {...register('country')} />
+
             <Input
               size="lg"
               label="Razão Social"
               {...register('razaoSocial')}
-              error={
-                errors.razaoSocial?.message ||
-                apiErrors.razaoSocial?.[0]
-              }
+              error={errors.razaoSocial?.message ?? apiErrors.razaoSocial?.[0]}
             />
 
             <Input
               size="lg"
               label="Nome Fantasia"
               {...register('nomeFantasia')}
-              error={
-                errors.nomeFantasia?.message ||
-                apiErrors.nomeFantasia?.[0]
-              }
+              error={errors.nomeFantasia?.message ?? apiErrors.nomeFantasia?.[0]}
             />
 
             <Input
@@ -93,8 +104,9 @@ export default function Contapj1Form({ initialData }: { initialData: InitialData
               placeholder="00.000.000/0000-00"
               {...register('numeroCNPJ')}
               error={
-                errors.numeroCNPJ?.message ||
-                apiErrors.numeroCNPJ?.[0]
+                errors.numeroCNPJ?.message
+                ?? apiErrors.numeroCNPJ?.[0]
+                ?? apiErrors.document_number?.[0]
               }
             />
 
@@ -104,8 +116,9 @@ export default function Contapj1Form({ initialData }: { initialData: InitialData
               placeholder="000.000.000-00"
               {...register('numeroCPF')}
               error={
-                errors.numeroCPF?.message ||
-                apiErrors.numeroCPF?.[0]
+                errors.numeroCPF?.message
+                ?? apiErrors.numeroCPF?.[0]
+                ?? apiErrors.document_number?.[0]
               }
             />
 
@@ -113,20 +126,14 @@ export default function Contapj1Form({ initialData }: { initialData: InitialData
               size="lg"
               label="Nome do Responsável"
               {...register('nomeResponsavel')}
-              error={
-                errors.nomeResponsavel?.message ||
-                apiErrors.nomeResponsavel?.[0]
-              }
+              error={errors.nomeResponsavel?.message ?? apiErrors.nomeResponsavel?.[0]}
             />
 
             <Input
               size="lg"
               label="Sobrenome do Responsável"
               {...register('sobrenomeResponsavel')}
-              error={
-                errors.sobrenomeResponsavel?.message ||
-                apiErrors.sobrenomeResponsavel?.[0]
-              }
+              error={errors.sobrenomeResponsavel?.message ?? apiErrors.sobrenomeResponsavel?.[0]}
             />
 
             <Input
@@ -134,40 +141,31 @@ export default function Contapj1Form({ initialData }: { initialData: InitialData
               size="lg"
               label="E-mail"
               {...register('email')}
-              error={
-                errors.email?.message ||
-                apiErrors.email?.[0]
-              }
+              error={errors.email?.message ?? apiErrors.email?.[0]}
               className="col-span-2"
             />
 
-            {/* Agrupamento de País / Telefone */}
             <Controller
               name="country_code"
               control={control}
               defaultValue={defaultValues.country_code}
               render={({ field }) => (
                 <Select
-                  name={field.name}
+                  {...field}
                   size="lg"
                   label="País"
                   options={Object.entries(initialData.countries).map(
-                    ([code, { country }]) => ({
-                      value: code,
-                      label: country
-                    })
+                    ([code, { country }]) => ({ value: code, label: country })
                   )}
-                  value={field.value}
-                  onChange={field.onChange}
                   invalid={Boolean(errors.country_code || apiErrors.country_code)}
                 />
               )}
             />
-            { (errors.country_code?.message || apiErrors.country_code?.[0]) && (
+            {(errors.country_code?.message ?? apiErrors.country_code?.[0]) && (
               <Text className="col-span-2 text-red-600 text-sm">
-                {errors.country_code?.message || apiErrors.country_code?.[0]}
+                {errors.country_code?.message ?? apiErrors.country_code?.[0]}
               </Text>
-            ) }
+            )}
 
             <Input
               size="lg"
@@ -181,10 +179,7 @@ export default function Contapj1Form({ initialData }: { initialData: InitialData
               label="Telefone"
               placeholder="(XX) XXXXX-XXXX"
               {...register('telefone')}
-              error={
-                errors.telefone?.message ||
-                apiErrors.telefone?.[0]
-              }
+              error={errors.telefone?.message ?? apiErrors.telefone?.[0]}
             />
 
             <div className="col-span-2 flex justify-between mt-2">
@@ -195,16 +190,19 @@ export default function Contapj1Form({ initialData }: { initialData: InitialData
                 Próximo
               </Button>
             </div>
+
+            {apiErrors._ && (
+              <Text className="col-span-2 text-center text-red-600">
+                {apiErrors._[0]}
+              </Text>
+            )}
           </div>
         )}
       </Form>
 
-      <Text className="mt-6 text-center leading-loose text-gray-500 lg:mt-8">
+      <Text className="mt-6 text-center text-gray-500">
         Já tem uma conta?{' '}
-        <Link
-          href={routes.auth.signIn}
-          className="font-semibold text-gray-700 hover:text-blue transition-colors"
-        >
+        <Link href={backTo} className="font-semibold text-gray-700 hover:text-blue">
           Faça login aqui!
         </Link>
       </Text>

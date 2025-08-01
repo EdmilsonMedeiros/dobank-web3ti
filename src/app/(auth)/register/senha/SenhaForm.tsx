@@ -32,19 +32,35 @@ export default function SenhaForm({ preCadastroId }: { preCadastroId: number }) 
       use_term: data.use_term ? 'on' : undefined,
     };
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/register/finalizar-cadastro`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/register/finalizar-cadastro`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 422 && json.errors) {
+          // mapeia erros de campo vindos da API
+          setApiErrors(json.errors);
+        } else {
+          // mensagem genérica
+          setApiErrors({ _: [json.message || 'Erro inesperado.'] });
+        }
+      } else {
+        router.push('/signin');
       }
-    );
-    const json = await res.json();
-    if (json.errors) {
-      setApiErrors(json.errors);
-    } else {
-      router.push('/auth/sign-in');
+    } catch (err) {
+      console.error('Erro ao conectar na API:', err);
+      setApiErrors({ _: ['Não foi possível conectar ao servidor.'] });
     }
   };
 
@@ -62,12 +78,16 @@ export default function SenhaForm({ preCadastroId }: { preCadastroId: number }) 
             <Password
               label="Senha"
               {...register('password')}
-              error={errors.password?.message}
+              // mostra erro de validação cliente OU erro vindo da API
+              error={errors.password?.message || apiErrors.password?.[0]}
             />
             <Password
               label="Confirme a senha"
               {...register('password_confirmation')}
-              error={errors.password_confirmation?.message}
+              error={
+                errors.password_confirmation?.message ||
+                apiErrors.password_confirmation?.[0]
+              }
             />
 
             <div className="space-y-2 mt-4">

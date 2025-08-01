@@ -10,7 +10,8 @@ export const contapj1Schema = z.object({
   nomeResponsavel: z.string().min(1, { message: 'Nome do responsável é obrigatório' }),
   sobrenomeResponsavel: z.string().min(1, { message: 'Sobrenome do responsável é obrigatório' }),
   email: z.string().email({ message: 'E-mail inválido' }),
-  country_code: z.string().min(1, { message: 'País é obrigatório' }),
+  country: z.string().min(1, { message: 'País é obrigatório' }),         // <-- adicionado
+  country_code: z.string().min(1, { message: 'Código de país obrigatório' }),
   mobile_code: z.string(),
   telefone: z.string().min(8, { message: 'Telefone inválido' }),
 });

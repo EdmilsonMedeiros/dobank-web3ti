@@ -36,7 +36,7 @@ export default function EnderecoForm({ preCadastroId }: { preCadastroId: number 
     if (json.errors) {
       setApiErrors(json.errors);
     } else {
-      router.push(`/auth/register/senha?preCadastroId=${json.preCadastroId}`);
+      router.push(`/register/senha?preCadastroId=${json.preCadastroId}`);
     }
   };
 
