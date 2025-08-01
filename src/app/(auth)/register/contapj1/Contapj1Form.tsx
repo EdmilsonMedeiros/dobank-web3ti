@@ -18,7 +18,7 @@ interface InitialData {
 
 export default function Contapj1Form({ initialData }: { initialData: InitialData }) {
   const router = useRouter();
-  const backTo = '/auth/sign-in';
+  const backTo = '/signin';
   const nextPath = '/register/endereco';
 
   const [apiErrors, setApiErrors] = useState<Record<string, string[]>>({});
