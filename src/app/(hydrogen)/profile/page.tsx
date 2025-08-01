@@ -1,250 +1,63 @@
-"use client";
+// src/app/(hydrogen)/profile/page.tsx
+import ProfileForm from './ProfileForm'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/app/api/auth/[...nextauth]/auth-options'
+import { env } from '@/env.mjs'
+import React from 'react'
 
-import { useState } from 'react';
-import Image from 'next/image';
+export default async function ProfilePage() {
+  // 1️⃣ Garante que o usuário está logado
+  const session = await getServerSession(authOptions)
+  if (!session) {
+    return <p>Você precisa estar logado.</p>
+  }
 
-export default function Profile() {
-  const [formData, setFormData] = useState({
+  const token = session.user.accessToken
+  const res = await fetch(
+    `${env.NEXT_PUBLIC_API_BASE_URL}/profile-setting`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    }
+  )
+  if (!res.ok) {
+    throw new Error('Erro ao buscar perfil')
+  }
+
+  const { user, beneficiary } = await res.json()
+
+  // 2️⃣ Mapeia o payload da API para o formato do formulário
+  const cpfCnpjApi = user.kyc_data?.['cpf/cnpj']?.value ?? ''
+
+  const initialData = {
     // Dados Pessoais
-    primeiroNome: 'Edmilson Jarbson',
-    sobrenome: 'Heroncio de Medeiros',
-    email: 'edmilsonjhm@gmail.com',
-    tipoPessoa: 'Pessoa Física',
-    cpfCnpj: '105.765.404-39',
-    
-    // Dados Bancários
-    nomeBanco: 'Bradesco',
-    tipoConta: 'CONTA_CORRENTE',
-    nomeCompleto: 'EDMILSON JARBSON HERONCIO DE MEDEIROS',
-    cpfCnpjConta: '10576540439',
-    agencia: '2134',
-    numeroConta: '1829',
-    digitoConta: '5',
-    
+    primeiroNome: user.firstname,
+    sobrenome: user.lastname,
+    email: user.email,
+    tipoPessoa:
+      user.tipo_pessoa === 'pessoa_fisica'
+        ? 'Pessoa Física'
+        : 'Pessoa Jurídica',
+    cpfCnpj: cpfCnpjApi,
+
+    // Dados Bancários (padrão, cai no beneficiary)
+    nomeBanco: beneficiary?.bank_name ?? '',
+    tipoConta: 'CONTA_CORRENTE' as const,
+    nomeCompleto:
+      beneficiary?.account_name ?? `${user.firstname} ${user.lastname}`,
+    cpfCnpjConta: beneficiary?.cpf_cnpj ?? '',
+    agencia: beneficiary?.bank_branch ?? '',
+    numeroConta: beneficiary?.account_number ?? '',
+    digitoConta: String(beneficiary?.account_digit ?? ''),
+
     // Dados PIX
-    tipoChave: 'CPF',
-    chavePixCpf: '10576540439',
-    image: null,
-  });
+    tipoChave: beneficiary?.pix_key_type ?? 'CPF',
+    chavePixCpf: beneficiary?.pix_key ?? '',
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+    // Imagem
+    image: user.image,
+  }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Lógica para salvar os dados
-    console.log(formData);
-  };
-
-  // Classes comuns para inputs e labels
-  const inputClass = "w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500";
-  const labelClass = "block text-sm text-gray-600 mb-1.5";
-
-  return (
-    <div className="">
-      <div className="bg-white rounded-xl shadow-sm">
-        {/* Cabeçalho */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h1 className="text-xl font-semibold">Perfil do Usuário</h1>
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 relative">
-              <Image
-                src={formData.image ?? 'https://isomorphic-furyroad.s3.amazonaws.com/public/avatars/avatar-11.webp'}
-                alt="Foto do perfil"
-                layout="fill"
-                className="rounded-lg object-cover"
-              />
-            </div>
-            <button className="bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700">
-              Carregar foto
-            </button>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Dados Pessoais */}
-          <div>
-            <h2 className="text-lg font-medium mb-4">Editar dados do Perfil</h2>
-            <div className="grid gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Primeiro Nome</label>
-                  <input
-                    type="text"
-                    name="primeiroNome"
-                    value={formData.primeiroNome}
-                    onChange={handleInputChange}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Sobrenome</label>
-                  <input
-                    type="text"
-                    name="sobrenome"
-                    value={formData.sobrenome}
-                    onChange={handleInputChange}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className={labelClass}>Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className={inputClass}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Tipo Pessoa *</label>
-                  <select
-                    name="tipoPessoa"
-                    value={formData.tipoPessoa}
-                    onChange={handleInputChange}
-                    className={inputClass}
-                  >
-                    <option value="Pessoa Física">Pessoa Física</option>
-                    <option value="Pessoa Jurídica">Pessoa Jurídica</option>
-                  </select>
-                </div>
-                <div>
-                  <label className={labelClass}>Número do CPF/CNPJ</label>
-                  <input
-                    type="text"
-                    name="cpfCnpj"
-                    value={formData.cpfCnpj}
-                    onChange={handleInputChange}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Dados Bancários */}
-          <div>
-            <h2 className="text-lg font-medium mb-4">Editar dados bancários</h2>
-            <div className="grid gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Nome do Banco</label>
-                  <input
-                    type="text"
-                    name="nomeBanco"
-                    value={formData.nomeBanco}
-                    onChange={handleInputChange}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Tipo da Conta *</label>
-                  <select
-                    name="tipoConta"
-                    value={formData.tipoConta}
-                    onChange={handleInputChange}
-                    className={inputClass}
-                  >
-                    <option value="CONTA_CORRENTE">CONTA CORRENTE</option>
-                    <option value="CONTA_POUPANCA">CONTA POUPANÇA</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className={labelClass}>Nome Completo *</label>
-                <input
-                  type="text"
-                  name="nomeCompleto"
-                  value={formData.nomeCompleto}
-                  onChange={handleInputChange}
-                  className={inputClass}
-                />
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className={labelClass}>Agência (sem dígito) *</label>
-                  <input
-                    type="text"
-                    name="agencia"
-                    value={formData.agencia}
-                    onChange={handleInputChange}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Número da Conta *</label>
-                  <input
-                    type="text"
-                    name="numeroConta"
-                    value={formData.numeroConta}
-                    onChange={handleInputChange}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Dígito da Conta *</label>
-                  <input
-                    type="text"
-                    name="digitoConta"
-                    value={formData.digitoConta}
-                    onChange={handleInputChange}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Dados PIX */}
-          <div>
-            <h2 className="text-lg font-medium mb-4">Editar dados PIX</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>Tipo de Chave</label>
-                <select
-                  name="tipoChave"
-                  value={formData.tipoChave}
-                  onChange={handleInputChange}
-                  className={inputClass}
-                >
-                  <option value="CPF">CPF</option>
-                  <option value="EMAIL">Email</option>
-                  <option value="TELEFONE">Telefone</option>
-                  <option value="ALEATORIA">Chave Aleatória</option>
-                </select>
-              </div>
-              <div>
-                <label className={labelClass}>Digite a chave *</label>
-                <input
-                  type="text"
-                  name="chavePixCpf"
-                  value={formData.chavePixCpf}
-                  onChange={handleInputChange}
-                  className={inputClass}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end pt-4">
-            <button
-              type="submit"
-              className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 text-sm font-medium"
-            >
-              Salvar Alterações
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+  // 3️⃣ Renderiza o formulário preenchido
+  return <ProfileForm initialData={initialData} />
 }
-
