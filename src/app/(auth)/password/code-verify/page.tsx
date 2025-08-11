@@ -10,14 +10,14 @@ export const metadata = {
   ...metaObject('Verificar Código'),
 };
 
-type PageProps = {
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
-
-export default function CodeVerifyPage({ searchParams }: PageProps) {
-  const emailParam = searchParams?.email;
-  const email =
-    typeof emailParam === 'string' ? decodeURIComponent(emailParam) : '';
+export default async function CodeVerifyPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = (await searchParams) ?? {};
+  const emailRaw = Array.isArray(sp.email) ? sp.email[0] : sp.email;
+  const email = typeof emailRaw === 'string' ? decodeURIComponent(emailRaw) : '';
 
   return (
     <AuthWrapperOne
