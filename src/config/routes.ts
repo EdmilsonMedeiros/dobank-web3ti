@@ -8,6 +8,8 @@ export const routes = {
     // signUp1: "/auth/sign-up-1",
     contapj1: "/register/contapj1",
     endereco: "/register/endereco",
+    resetPassword: "/password/resetar",
+
   },
 
   core: {

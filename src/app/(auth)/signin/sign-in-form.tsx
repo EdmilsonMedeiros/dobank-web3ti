@@ -69,7 +69,7 @@ export default function SignInForm() {
             />
             <div className="flex items-center justify-between">
               <Checkbox {...register('rememberMe')} label="Remember Me" />
-              <Link href={routes.auth.forgotPassword1}>
+              <Link href={routes.auth.resetPassword}>
                 Esqueceu a senha?
               </Link>
             </div>

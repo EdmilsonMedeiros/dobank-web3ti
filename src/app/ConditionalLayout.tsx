@@ -14,6 +14,9 @@ export default function ConditionalLayout({ children }: { children: ReactNode })
     pathname.startsWith('/register/contapj1') ||
     pathname.startsWith('/register/endereco') ||
     pathname.startsWith('/register/senha') ||
+    pathname.startsWith('/password/resetar') ||
+    pathname.startsWith('/password/code-verify') ||
+    pathname.startsWith('/password/alterar') ||
     pathname.startsWith('/forgot-password')
 
   if (isPublicRoute) {
