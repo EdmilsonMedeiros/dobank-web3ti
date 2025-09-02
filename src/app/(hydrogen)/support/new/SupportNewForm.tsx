@@ -19,28 +19,45 @@ interface FileInputItem {
   file?: File | null
 }
 
+const allowedExts = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'] as const
+const MAX_FILES = 5
+const MAX_MB = 2
+
+function uuid() {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID()
+  return `${Date.now()}_${Math.random().toString(16).slice(2)}`
+}
+
+async function fileToBase64NoPrefix(file: File): Promise<string> {
+  const buf = await file.arrayBuffer()
+  let binary = ''
+  const bytes = new Uint8Array(buf)
+  const chunk = 0x8000
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk) as any)
+  }
+  return btoa(binary)
+}
+
 export default function SupportNewForm({ initialData }: { initialData: InitialData }) {
   const router = useRouter()
 
-  // ----- Form state (equivalente ao Blade) -----
+  // ----- Form state (como no Blade) -----
   const [name, setName] = useState(initialData.presetName)
   const [email, setEmail] = useState(initialData.presetEmail)
   const [subject, setSubject] = useState('')
-  const [priority, setPriority] = useState<PriorityCode>(2) // default "Medium"
+  const [priority, setPriority] = useState<PriorityCode>(2) // Medium por padrão
   const [message, setMessage] = useState('')
 
-  // Anexos dinâmicos (attachments[])
-  const [inputs, setInputs] = useState<FileInputItem[]>([
-    { id: crypto.randomUUID(), file: null },
-  ])
+  // Anexos dinâmicos
+  const [inputs, setInputs] = useState<FileInputItem[]>([{ id: uuid(), file: null }])
   const formRef = useRef<HTMLFormElement>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const accept =
-    '.jpg,.jpeg,.png,.docx,.doc,.pdf' // Allowed File Extensions (como no Blade)
+  const accept = '.jpg,.jpeg,.png,.docx,.doc,.pdf'
 
   function addFileInput() {
-    setInputs((prev) => [...prev, { id: crypto.randomUUID(), file: null }])
+    setInputs((prev) => (prev.length >= MAX_FILES ? prev : [...prev, { id: uuid(), file: null }]))
   }
 
   function removeFileInput(id: string) {
@@ -48,47 +65,67 @@ export default function SupportNewForm({ initialData }: { initialData: InitialDa
   }
 
   function handleFileChange(id: string, file?: File | null) {
-    setInputs((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, file: file ?? null } : i)),
-    )
+    setInputs((prev) => prev.map((i) => (i.id === id ? { ...i, file: file ?? null } : i)))
   }
 
-  // ----- Submit (equivalente à action="ticket.store" com multipart/form-data) -----
+  function validate(): string | null {
+    if (!name.trim()) return 'Preencha o nome.'
+    if (!email.trim()) return 'Preencha o e-mail.'
+    if (!subject.trim()) return 'Preencha o assunto.'
+    if (!message.trim()) return 'Preencha a mensagem.'
+
+    const files = inputs.map((i) => i.file).filter(Boolean) as File[]
+    if (files.length > MAX_FILES) return `Máximo de ${MAX_FILES} arquivos.`
+
+    for (const f of files) {
+      const ext = f.name.split('.').pop()?.toLowerCase() || ''
+      if (!allowedExts.includes(ext as any)) {
+        return 'Apenas arquivos jpg, jpeg, png, pdf, doc, docx são permitidos.'
+      }
+      const sizeMB = f.size / 1_000_000
+      if (sizeMB > MAX_MB) return `Tamanho máximo por arquivo: ${MAX_MB}MB.`
+    }
+    return null
+  }
+
+  // ----- Envio: POST /support/create (JSON) -----
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (isSubmitting) return
 
-    // Validações simples (iguais às do Blade: required)
-    if (!name.trim() || !email.trim() || !subject.trim()) {
-      alert('Preencha nome, e-mail e assunto.')
+    const err = validate()
+    if (err) {
+      alert(err)
       return
     }
 
     setIsSubmitting(true)
     try {
-      const fd = new FormData()
-      fd.append('name', name)
-      fd.append('email', email)
-      fd.append('subject', subject)
-      fd.append('priority', String(priority)) // 3 High, 2 Medium, 1 Low
-      fd.append('message', message)
+      const files = inputs.map((i) => i.file).filter(Boolean) as File[]
+      const attachments = await Promise.all(
+        files.map(async (file) => ({
+          filename: file.name,
+          content: await fileToBase64NoPrefix(file), // sem prefixo data:
+        })),
+      )
 
-      inputs.forEach((item) => {
-        if (item.file) {
-          fd.append('attachments[]', item.file)
-        }
-      })
+      const payload: any = {
+        name,
+        email,
+        subject,
+        message,
+        priority, // 3 High, 2 Medium, 1 Low
+      }
+      if (attachments.length) payload.attachments = attachments
 
-      // No Blade: route('ticket.store') → por convenção REST do Laravel é POST /ticket
-      // Ajuste a URL se sua API usar outro path (ex: /tickets/store)
-      const res = await fetch(`${initialData.apiBaseUrl}/ticket`, {
+      const res = await fetch(`${initialData.apiBaseUrl}/support/create`, {
         method: 'POST',
         headers: {
-          // NÃO defina 'Content-Type' manualmente ao enviar FormData
           Authorization: initialData.authToken ? `Bearer ${initialData.authToken}` : '',
           Accept: 'application/json',
+          'Content-Type': 'application/json',
         },
-        body: fd,
+        body: JSON.stringify(payload),
       })
 
       if (!res.ok) {
@@ -100,11 +137,13 @@ export default function SupportNewForm({ initialData }: { initialData: InitialDa
         throw new Error(msg)
       }
 
-      // Sucesso
+      const data = await res.json().catch(() => null)
+      const ticketNum = data?.ticket?.ticket ?? null
+
       alert('Ticket enviado com sucesso!')
-      router.push('/support')
-    } catch (err: any) {
-      alert(err?.message ?? 'Não foi possível enviar seu ticket.')
+      router.push(ticketNum ? `/support/${String(ticketNum)}` : '/support')
+    } catch (e: any) {
+      alert(e?.message ?? 'Não foi possível enviar seu ticket.')
     } finally {
       setIsSubmitting(false)
     }
@@ -117,16 +156,13 @@ export default function SupportNewForm({ initialData }: { initialData: InitialDa
         <div className="flex items-center justify-between p-6 border-b">
           <h1 className="text-xl font-semibold">Tickets de Suporte</h1>
           <div className="flex items-center gap-2">
-            <Link
-              href="/support"
-              className="px-4 py-2 text-sm rounded-md border hover:bg-gray-50"
-            >
+            <Link href="/support" className="px-4 py-2 text-sm rounded-md border hover:bg-gray-50">
               Voltar ao Histórico
             </Link>
           </div>
         </div>
 
-        {/* Form Card */}
+        {/* Card do Form */}
         <div className="p-6">
           <div className="bg-white rounded-xl border">
             <div className="p-5">
@@ -134,22 +170,17 @@ export default function SupportNewForm({ initialData }: { initialData: InitialDa
                 <h2 className="text-base font-medium">Abrir Novo Ticket</h2>
               </div>
 
-              <form
-                ref={formRef}
-                onSubmit={onSubmit}
-                encType="multipart/form-data"
-                className="grid grid-cols-12 gap-6"
-              >
-                {/* Name */}
+              <form ref={formRef} onSubmit={onSubmit} className="grid grid-cols-12 gap-6">
+                {/* Nome */}
                 <div className="col-span-12 lg:col-span-6">
                   <label className="block text-sm text-gray-600 mb-1.5">Nome</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Digite seu nome"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
@@ -158,37 +189,35 @@ export default function SupportNewForm({ initialData }: { initialData: InitialDa
                   <label className="block text-sm text-gray-600 mb-1.5">Email</label>
                   <input
                     type="email"
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Digite seu e-mail"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
-                {/* Subject */}
+                {/* Assunto */}
                 <div className="col-span-12 lg:col-span-6">
                   <label className="block text-sm text-gray-600 mb-1.5">Assunto</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Assunto"
                     required
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
-                {/* Priority */}
+                {/* Prioridade */}
                 <div className="col-span-12 lg:col-span-6">
-                  <label className="block text-sm text-gray-600 mb-1.5">
-                    Prioridade *
-                  </label>
+                  <label className="block text-sm text-gray-600 mb-1.5">Prioridade *</label>
                   <select
                     required
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                     value={priority}
                     onChange={(e) => setPriority(Number(e.target.value) as PriorityCode)}
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value={3}>High</option>
                     <option value={2}>Medium</option>
@@ -196,25 +225,25 @@ export default function SupportNewForm({ initialData }: { initialData: InitialDa
                   </select>
                 </div>
 
-                {/* Message */}
+                {/* Mensagem */}
                 <div className="col-span-12 lg:col-span-6">
                   <label className="block text-sm text-gray-600 mb-1.5">Mensagem</label>
                   <textarea
                     rows={6}
-                    className="w-full h-28 px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Descreva o problema..."
+                    required
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
+                    className="w-full h-28 px-4 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
-                {/* Attachments + Add button (como no Blade) */}
+                {/* Anexos */}
                 <div className="col-span-12 lg:col-span-6">
                   <label className="block text-sm text-gray-600 mb-1.5" htmlFor="inputAttachments">
                     Anexos
                   </label>
 
-                  {/* Inputs dinâmicos */}
                   <div className="space-y-3">
                     {inputs.map((it, idx) => (
                       <div key={it.id} className="flex items-center gap-2">
@@ -222,10 +251,8 @@ export default function SupportNewForm({ initialData }: { initialData: InitialDa
                           id={idx === 0 ? 'inputAttachments' : undefined}
                           type="file"
                           accept={accept}
+                          onChange={(e) => handleFileChange(it.id, e.currentTarget.files?.[0] ?? null)}
                           className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md"
-                          onChange={(e) =>
-                            handleFileChange(it.id, e.currentTarget.files?.[0] ?? null)
-                          }
                         />
                         {inputs.length > 1 && (
                           <button
@@ -243,37 +270,29 @@ export default function SupportNewForm({ initialData }: { initialData: InitialDa
 
                   <p className="text-sm text-gray-600 mt-2">
                     Extensões permitidas: .jpg, .jpeg, .png, .pdf, .doc, .docx
+                    <br />
+                    Máximo de {MAX_FILES} arquivos; até {MAX_MB}MB por arquivo.
                   </p>
 
                   <div className="mt-3">
                     <button
                       type="button"
                       onClick={addFileInput}
-                      className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-md border hover:bg-gray-50"
+                      className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-md border hover:bg-gray-50 disabled:opacity-50"
+                      disabled={inputs.length >= MAX_FILES}
                     >
-                      <svg
-                        className="w-4 h-4"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M12 5v14M5 12h14"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                        />
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                       </svg>
                       Adicionar arquivo
                     </button>
                   </div>
                 </div>
 
-                {/* Submit */}
+                {/* Enviar */}
                 <div className="col-span-12">
                   <button
                     type="submit"
-                    id="recaptcha"
                     disabled={isSubmitting}
                     className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 text-sm font-medium disabled:opacity-50"
                   >

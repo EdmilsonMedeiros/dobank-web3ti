@@ -7,17 +7,20 @@ import SupportNewForm from './SupportNewForm'
 
 export default async function SupportNewPage() {
   const session = await getServerSession(authOptions)
+  if (!session) {
+    return <p>Você precisa estar logado.</p>
+  }
 
-  const presetName =
-    (session?.user?.name as string | undefined) ??
-    '' // você pode montar "Firstname Lastname" se tiver estes campos na session
-  const presetEmail = (session?.user?.email as string | undefined) ?? ''
+  // Cast pontual para acessar campos opcionais
+  const u = session.user as any
 
   const initialData = {
     apiBaseUrl: env.NEXT_PUBLIC_API_BASE_URL ?? '',
-    authToken: (session?.user?.accessToken as string | undefined) ?? '',
-    presetName,
-    presetEmail,
+    authToken: u?.accessToken ?? '',
+    // se não existir name no payload, cai para string vazia
+    presetName: (u?.name ?? '') as string,
+    // este já existe no seu tipo, mas mantive via `u` para ficar simétrico
+    presetEmail: (u?.email ?? '') as string,
   }
 
   return <SupportNewForm initialData={initialData} />
