@@ -28,9 +28,9 @@ export const routes = {
     // Mais
     // account:      () => `${LEGACY_BASE}/user/profile-setting`, // “Minha Conta”
     account: "/profile", // “Dashboard”
-    apis:         () => `${LEGACY_BASE}/user/apis`, // “API’s”
+    apis: "/user/apis", // “API's”
     referrals:    () => `${LEGACY_BASE}/user/referees`, // “Indicações”
-    support:      () => `${LEGACY_BASE}/support`, // “Suporte”
+    support: "/support", // “API's”
 
     // Outros
     password:      () => `${LEGACY_BASE}/user/change-password`, // “Alterar a Senha”

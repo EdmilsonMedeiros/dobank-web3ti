@@ -94,7 +94,7 @@ export const menuItems: MenuItem[] = [
       },
       {
         name: "API's",
-        href: routes.auth.signIn,
+        href: routes.core.apis,
       },
       {
         name: "Indicações",
@@ -102,7 +102,7 @@ export const menuItems: MenuItem[] = [
       },
       {
         name: "Suporte",
-        href: routes.auth.signIn,
+        href: routes.core.support,
       },
       {
         name: "PDV",

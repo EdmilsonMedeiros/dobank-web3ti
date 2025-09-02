@@ -1,63 +1,55 @@
 // src/app/(hydrogen)/profile/page.tsx
-import ProfileForm from './ProfileForm'
-import { getServerSession } from 'next-auth/next'
+import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/auth-options'
+import ProfileForm from './ProfileForm'
 import { env } from '@/env.mjs'
 import React from 'react'
 
 export default async function ProfilePage() {
-  // 1️⃣ Garante que o usuário está logado
   const session = await getServerSession(authOptions)
   if (!session) {
     return <p>Você precisa estar logado.</p>
   }
 
-  const token = session.user.accessToken
-  const res = await fetch(
-    `${env.NEXT_PUBLIC_API_BASE_URL}/profile-setting`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store',
-    }
-  )
+  const token = (session.user as any)?.accessToken as string
+  // Endpoint GET que retorna { user, beneficiary } (ex.: UserController@profile)
+  const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/profile-setting`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+    cache: 'no-store',
+  })
   if (!res.ok) {
-    throw new Error('Erro ao buscar perfil')
+    throw new Error('Erro ao carregar perfil')
   }
-
   const { user, beneficiary } = await res.json()
 
-  // 2️⃣ Mapeia o payload da API para o formato do formulário
-  const cpfCnpjApi = user.kyc_data?.['cpf/cnpj']?.value ?? ''
-
+  // Mapeia p/ o formulário (mantém nomes PT no UI; back recebe nomes EN/underscored)
   const initialData = {
-    // Dados Pessoais
-    primeiroNome: user.firstname,
-    sobrenome: user.lastname,
-    email: user.email,
-    tipoPessoa:
-      user.tipo_pessoa === 'pessoa_fisica'
-        ? 'Pessoa Física'
-        : 'Pessoa Jurídica',
-    cpfCnpj: cpfCnpjApi,
+    // UI
+    primeiroNome: user?.firstname ?? '',
+    sobrenome: user?.lastname ?? '',
+    email: user?.email ?? '',
+    tipoPessoa: user?.tipo_pessoa ?? '', // desabilitado (só exibição opcional)
+    cpfCnpj: user?.document_number ?? '', // só exibição opcional
 
-    // Dados Bancários (padrão, cai no beneficiary)
+    // Bancários (segundo o Blade)
     nomeBanco: beneficiary?.bank_name ?? '',
-    tipoConta: 'CONTA_CORRENTE' as const,
-    nomeCompleto:
-      beneficiary?.account_name ?? `${user.firstname} ${user.lastname}`,
+    tipoConta: beneficiary?.short_name ?? 'CONTA_CORRENTE',
+    nomeCompleto: beneficiary?.account_name ?? `${user?.firstname ?? ''} ${user?.lastname ?? ''}`.trim(),
     cpfCnpjConta: beneficiary?.cpf_cnpj ?? '',
     agencia: beneficiary?.bank_branch ?? '',
     numeroConta: beneficiary?.account_number ?? '',
-    digitoConta: String(beneficiary?.account_digit ?? ''),
+    digitoConta: beneficiary?.account_digit?.toString?.() ?? '',
 
-    // Dados PIX
-    tipoChave: beneficiary?.pix_key_type ?? 'CPF',
-    chavePixCpf: beneficiary?.pix_key ?? '',
+    // PIX
+    tipoChave: beneficiary?.pix_key_type ?? '',
+    chavePix: beneficiary?.pix_key ?? '',
 
     // Imagem
-    image: user.image,
+    imageUrl: user?.image ?? null,
+
+    // Controle
+    liberado_dados_bancarios: Boolean(user?.liberado_dados_bancarios),
   }
 
-  // 3️⃣ Renderiza o formulário preenchido
-  return <ProfileForm initialData={initialData} />
+  return <ProfileForm initialData={initialData} apiBaseUrl={env.NEXT_PUBLIC_API_BASE_URL} token={token} />
 }
