@@ -86,6 +86,8 @@ export default async function UserApisPage() {
     <p>As requisições são via HTTPS com Token no header e retornos em JSON.</p>
   `
 
+  const hasRecToken = !!user?.api_token
+
   const initialData = {
     apiBaseUrl: env.NEXT_PUBLIC_API_BASE_URL,
     authToken: token,
@@ -110,6 +112,7 @@ export default async function UserApisPage() {
       },
       // Não enviamos o token de recebimento para o client por segurança.
       token: null,
+      hasToken: hasRecToken,
       autorizacaoSelecionada: 'Email' as const,
       webhookUrl: user?.webhook_url ?? 'https://',
       tipoCobranca: (user?.api_tipo_cobranca ?? 'descontar') as 'descontar' | 'adicionar',

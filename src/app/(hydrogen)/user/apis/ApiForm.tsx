@@ -41,6 +41,7 @@ interface InitialData {
   recebimentos: {
     taxas: RecebimentosTaxas
     token: string | null
+    hasToken: boolean
     autorizacaoSelecionada: ModoAutorizacao
     webhookUrl: string
     tipoCobranca: TipoCobranca
@@ -74,7 +75,7 @@ export default function ApiForm({ initialData }: ApiFormProps) {
 
   // ===== Pagamentos (state) =====
   const [pgTaxas] = useState(initialData.pagamentos.taxas)
-  const [pgToken, setPgToken] = useState<string | null>(initialData.pagamentos.token)
+  const [pgToken] = useState<string | null>(initialData.pagamentos.token)
   const [pgAutorizacao, setPgAutorizacao] = useState<ModoAutorizacao>(
     initialData.pagamentos.autorizacaoSelecionada,
   )
@@ -123,7 +124,7 @@ export default function ApiForm({ initialData }: ApiFormProps) {
   // Endpoint de ação: POST /user.action
   // -------------------------------
   async function postUserAction(body: Record<string, any>) {
-    const res = await fetch(`${initialData.apiBaseUrl}/user.action`, {
+    const res = await fetch(`${initialData.apiBaseUrl}/user/action`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${initialData.authToken}`,
@@ -133,8 +134,14 @@ export default function ApiForm({ initialData }: ApiFormProps) {
       body: JSON.stringify(body),
     })
     if (!res.ok) {
-      const err = await res.text().catch(() => '')
-      throw new Error(err || 'Falha na operação')
+      // tenta extrair {message} antes de cair no texto cru
+      try {
+        const j = await res.json()
+        throw new Error(j?.message || 'Falha na operação')
+      } catch {
+        const err = await res.text().catch(() => '')
+        throw new Error(err || 'Falha na operação')
+      }
     }
     return res.json().catch(() => ({}))
   }
@@ -188,6 +195,7 @@ export default function ApiForm({ initialData }: ApiFormProps) {
     }
   }
 
+  // Igual ao Blade: após solicitar/renovar, ir para a tela de OTP
   const gerarOuTrocarTokenRecebimentos = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!termoAceito) {
@@ -195,12 +203,13 @@ export default function ApiForm({ initialData }: ApiFormProps) {
       return
     }
     try {
-      await postUserAction({
+      const { action_id } = await postUserAction({
         id: initialData.userId,
         type: 'get_api_token',
         verification: recAutorizacao === 'Email' ? 2 : undefined,
       })
-      alert('Token de recebimentos solicitado/renovado com sucesso.')
+      const qs = action_id ? `?action_id=${action_id}` : ''
+      window.location.href = `/verify/otp${qs}`
     } catch (err: any) {
       alert(`Erro ao solicitar token: ${err?.message ?? 'tente novamente'}`)
     }
@@ -222,15 +231,17 @@ export default function ApiForm({ initialData }: ApiFormProps) {
     }
   }
 
+  // Igual ao Blade: após trocar token de pagamentos, ir para a tela de OTP
   const trocarTokenPagamentos = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await postUserAction({
+      const { action_id } = await postUserAction({
         id: initialData.userId,
         type: 'get_api_token_pg',
         verification: pgAutorizacao === 'Email' ? 2 : undefined,
       })
-      alert('Token de pagamentos solicitado/renovado com sucesso.')
+      const qs = action_id ? `?action_id=${action_id}` : ''
+      window.location.href = `/verify/otp${qs}`
     } catch (err: any) {
       alert(`Erro ao solicitar token (pagamentos): ${err?.message ?? 'tente novamente'}`)
     }
@@ -413,7 +424,7 @@ export default function ApiForm({ initialData }: ApiFormProps) {
                             type="submit"
                             className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 text-sm font-medium"
                           >
-                            {recToken ? 'Gerar novo token' : 'Gerar token'}
+                            {initialData.recebimentos.hasToken ? 'Gerar novo token' : 'Gerar token'}
                           </button>
                         </div>
                       </form>
