@@ -3,19 +3,28 @@
 import Link from 'next/link'
 import React, { useMemo, useState } from 'react'
 
-type StatusCode = 0 | 1 | 2 | 3
-type PriorityCode = 1 | 2 | 3
+export type StatusCode = 0 | 1 | 2 | 3
+export type PriorityCode = 1 | 2 | 3
 
 export interface SupportItem {
   ticket: string
   subject: string
   status: StatusCode
   priority: PriorityCode
-  last_reply: string // ISO date
+  last_reply: string // ISO-like or "YYYY-MM-DD HH:mm:ss"
+}
+
+export interface PaginationMeta {
+  currentPage: number
+  lastPage: number
+  hasPrev: boolean
+  hasNext: boolean
+  total: number
 }
 
 interface Props {
   initialSupports: SupportItem[]
+  pagination: PaginationMeta
 }
 
 function StatusBadge({ status }: { status: StatusCode }) {
@@ -23,10 +32,10 @@ function StatusBadge({ status }: { status: StatusCode }) {
     StatusCode,
     { label: string; className: string }
   > = {
-    0: { label: 'Open', className: 'bg-emerald-100 text-emerald-800' },
-    1: { label: 'Answered', className: 'bg-blue-100 text-blue-800' },
-    2: { label: 'Customer Reply', className: 'bg-amber-100 text-amber-800' },
-    3: { label: 'Closed', className: 'bg-rose-100 text-rose-800' },
+    0: { label: 'Open',            className: 'bg-emerald-100 text-emerald-800' },
+    1: { label: 'Answered',        className: 'bg-blue-100 text-blue-800' },
+    2: { label: 'Customer Reply',  className: 'bg-amber-100 text-amber-800' },
+    3: { label: 'Closed',          className: 'bg-rose-100 text-rose-800' },
   }
   const { label, className } = map[status]
   return (
@@ -41,9 +50,9 @@ function PriorityBadge({ priority }: { priority: PriorityCode }) {
     PriorityCode,
     { label: string; className: string }
   > = {
-    1: { label: 'Low', className: 'bg-gray-200 text-gray-800' },
+    1: { label: 'Low',    className: 'bg-gray-200 text-gray-800' },
     2: { label: 'Medium', className: 'bg-emerald-100 text-emerald-800' },
-    3: { label: 'High', className: 'bg-blue-100 text-blue-800' },
+    3: { label: 'High',   className: 'bg-blue-100 text-blue-800' },
   }
   const { label, className } = map[priority]
   return (
@@ -53,9 +62,20 @@ function PriorityBadge({ priority }: { priority: PriorityCode }) {
   )
 }
 
-function timeAgoPt(iso: string) {
+function parseApiDate(input: string): Date {
+  // Tenta ISO direto
+  const d1 = new Date(input)
+  if (!isNaN(d1.getTime())) return d1
+  // Tenta "YYYY-MM-DD HH:mm:ss"
+  const d2 = new Date(input.replace(' ', 'T'))
+  if (!isNaN(d2.getTime())) return d2
+  // Fallback: agora
+  return new Date()
+}
+
+function timeAgoPt(input: string) {
+  const t = parseApiDate(input).getTime()
   const now = Date.now()
-  const t = new Date(iso).getTime()
   const diff = Math.max(0, now - t)
 
   const minutes = Math.floor(diff / (60 * 1000))
@@ -68,32 +88,57 @@ function timeAgoPt(iso: string) {
   return `há ${days} d`
 }
 
-export default function SupportTable({ initialSupports }: Props) {
-  const [supports] = useState<SupportItem[]>(initialSupports)
-  const [page, setPage] = useState(1)
-  const pageSize = 10
+export default function SupportTable({ initialSupports, pagination }: Props) {
+  const [q, setQ] = useState('')
 
-  const { pageItems, totalPages } = useMemo(() => {
-    const start = (page - 1) * pageSize
-    const end = start + pageSize
-    return {
-      pageItems: supports.slice(start, end),
-      totalPages: Math.max(1, Math.ceil(supports.length / pageSize)),
-    }
-  }, [supports, page])
+  const list = useMemo(() => {
+    const qn = q.trim().toLowerCase()
+    if (!qn) return initialSupports
+    return initialSupports.filter((s) => {
+      const subj = (s.subject || '').toLowerCase()
+      const tick = (s.ticket || '').toLowerCase()
+      return subj.includes(qn) || tick.includes(qn)
+    })
+  }, [initialSupports, q])
 
   return (
     <div className="">
       <div className="bg-white rounded-xl shadow-sm">
         {/* Cabeçalho */}
-        <div className="flex items-center justify-between p-6 border-b">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between p-6 border-b">
           <h1 className="text-xl font-semibold">Histórico de Tickets de Suporte</h1>
-          <Link
-            href="/support/new"
-            className="bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700"
-          >
-            + Abrir Novo Ticket
-          </Link>
+
+          <div className="flex w-full md:w-auto items-center gap-3">
+            <div className="relative w-full md:w-64">
+              <input
+                type="text"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Pesquisar chamado"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+              <svg
+                className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M21 21l-4.3-4.3M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+
+            <Link
+              href="/support/new"
+              className="bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700 whitespace-nowrap"
+            >
+              + Abrir Novo Ticket
+            </Link>
+          </div>
         </div>
 
         {/* Tabela */}
@@ -110,23 +155,17 @@ export default function SupportTable({ initialSupports }: Props) {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
-                {pageItems.length === 0 ? (
+                {list.length === 0 ? (
                   <tr>
-                    <td
-                      className="px-4 sm:px-6 py-4 text-sm text-gray-700"
-                      colSpan={5}
-                    >
+                    <td className="px-4 sm:px-6 py-4 text-sm text-gray-700" colSpan={5}>
                       Data Not Found
                     </td>
                   </tr>
                 ) : (
-                  pageItems.map((s) => (
+                  list.map((s) => (
                     <tr key={s.ticket} className="text-sm">
                       <td className="px-4 sm:px-6 py-4">
-                        <Link
-                          href={`/support/${s.ticket}`}
-                          className="text-blue-600 hover:underline"
-                        >
+                        <Link href={`/support/${s.ticket}`} className="text-blue-600 hover:underline">
                           [Ticket #{s.ticket}] {s.subject}
                         </Link>
                       </td>
@@ -141,8 +180,7 @@ export default function SupportTable({ initialSupports }: Props) {
                       </td>
                       <td className="px-4 sm:px-6 py-4">
                         <Link
-                          // href={`/support/${s.ticket}`}
-                          href={`/support/new`}
+                          href={`/support/${s.ticket}`}
                           className="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded-md text-xs hover:bg-blue-700"
                           aria-label="Ver Ticket"
                           title="Ver Ticket"
@@ -178,30 +216,38 @@ export default function SupportTable({ initialSupports }: Props) {
             </table>
           </div>
 
-          {/* Paginação (simples, estática) */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <p className="text-sm text-gray-600">
-                Página {page} de {totalPages}
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="px-3 py-1.5 text-sm rounded-md border hover:bg-gray-50 disabled:opacity-50"
-                  disabled={page === 1}
-                >
-                  Anterior
-                </button>
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className="px-3 py-1.5 text-sm rounded-md border hover:bg-gray-50 disabled:opacity-50"
-                  disabled={page === totalPages}
-                >
-                  Próxima
-                </button>
-              </div>
+          {/* Paginação do backend */}
+          <div className="flex items-center justify-between mt-4">
+            <p className="text-sm text-gray-600">
+              Página {pagination.currentPage} de {pagination.lastPage}
+            </p>
+            <div className="flex gap-2">
+              <Link
+                aria-disabled={!pagination.hasPrev}
+                href={pagination.hasPrev ? `/support?page=${Math.max(1, pagination.currentPage - 1)}` : '#'}
+                className={[
+                  'px-3 py-1.5 text-sm rounded-md border hover:bg-gray-50',
+                  !pagination.hasPrev ? 'pointer-events-none opacity-50' : '',
+                ].join(' ')}
+              >
+                Anterior
+              </Link>
+              <Link
+                aria-disabled={!pagination.hasNext}
+                href={
+                  pagination.hasNext
+                    ? `/support?page=${Math.min(pagination.lastPage, pagination.currentPage + 1)}`
+                    : '#'
+                }
+                className={[
+                  'px-3 py-1.5 text-sm rounded-md border hover:bg-gray-50',
+                  !pagination.hasNext ? 'pointer-events-none opacity-50' : '',
+                ].join(' ')}
+              >
+                Próxima
+              </Link>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
