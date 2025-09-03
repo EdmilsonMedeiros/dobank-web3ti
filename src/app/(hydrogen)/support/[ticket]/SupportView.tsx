@@ -2,7 +2,7 @@
 'use client'
 
 import Link from 'next/link'
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
 type StatusCode = 0 | 1 | 2 | 3
@@ -96,30 +96,6 @@ export default function SupportView({
 
   const canReply = ticket?.status !== 3 // não está fechado
 
-  const headerStatusNode = useMemo(() => (
-    <div className="flex items-start justify-between gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <StatusBadge status={ticket.status} />
-        <PriorityBadge priority={ticket.priority} />
-        <span className="text-sm text-gray-700">
-          [Ticket #{ticket.ticket}] {ticket.subject}
-        </span>
-      </div>
-
-      {ticket.status !== 3 && (
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={isClosing}
-          className="bg-rose-600 text-white text-sm px-3 py-1.5 rounded-md hover:bg-rose-700 disabled:opacity-50"
-          title="Fechar ticket"
-        >
-          Fechar
-        </button>
-      )}
-    </div>
-  ), [ticket, isClosing])
-
   function addFileRow() {
     setFiles((prev) => [...prev, { id: crypto.randomUUID(), file: null }])
   }
@@ -173,8 +149,8 @@ export default function SupportView({
     }
   }
 
-  // Fechar
-  async function onClose() {
+  // Fechar (estável)
+  const onClose = useCallback(async () => {
     if (!confirm('Tem certeza que deseja fechar este ticket?')) return
     setIsClosing(true)
     try {
@@ -201,7 +177,31 @@ export default function SupportView({
     } finally {
       setIsClosing(false)
     }
-  }
+  }, [apiBaseUrl, authToken, ticketNumber, router])
+
+  const headerStatusNode = useMemo(() => (
+    <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <StatusBadge status={ticket.status} />
+        <PriorityBadge priority={ticket.priority} />
+        <span className="text-sm text-gray-700">
+          [Ticket #{ticket.ticket}] {ticket.subject}
+        </span>
+      </div>
+
+      {ticket.status !== 3 && (
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={isClosing}
+          className="bg-rose-600 text-white text-sm px-3 py-1.5 rounded-md hover:bg-rose-700 disabled:opacity-50"
+          title="Fechar ticket"
+        >
+          Fechar
+        </button>
+      )}
+    </div>
+  ), [ticket, isClosing, onClose])
 
   return (
     <div className="">
