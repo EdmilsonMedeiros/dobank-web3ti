@@ -209,7 +209,7 @@ export default function ApiForm({ initialData }: ApiFormProps) {
         verification: recAutorizacao === 'Email' ? 2 : undefined,
       })
       const qs = action_id ? `?action_id=${action_id}` : ''
-      window.location.href = `/user//verify/otp${qs}`
+      window.location.href = `/user/verify/otp${qs}`
     } catch (err: any) {
       alert(`Erro ao solicitar token: ${err?.message ?? 'tente novamente'}`)
     }
