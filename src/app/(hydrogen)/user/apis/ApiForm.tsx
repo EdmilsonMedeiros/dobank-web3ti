@@ -146,6 +146,20 @@ export default function ApiForm({ initialData }: ApiFormProps) {
     return res.json().catch(() => ({}))
   }
 
+  // >>> ADICIONADO: trata respostas que exigem redirecionamento (OTP / redirect_to)
+  function handleActionResponse(data: any, fallbackMsg: string) {
+    if (data?.status === 'pending_otp' && data?.action_id) {
+      const qs = `?action_id=${data.action_id}`
+      window.location.href = `/user/verify/otp${qs}`
+      return
+    }
+    if (data?.status === 'success' && data?.redirect_to) {
+      window.location.href = data.redirect_to
+      return
+    }
+    alert(data?.message ?? fallbackMsg)
+  }
+
   // Revela e copia o token de RECEBIMENTO (marca como visto no backend)
   async function handleRevealAndCopyRecToken() {
     setIsRevealingRecToken(true)
@@ -218,14 +232,14 @@ export default function ApiForm({ initialData }: ApiFormProps) {
   const atualizarConfigRecebimentos = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await postUserAction({
+      const data = await postUserAction({
         id: initialData.userId,
         type: 'update_api_data',
         api_tipo_cobranca: tipoCobranca,
         webhook_url: recWebhookUrl,
         verification: recAutorizacao === 'Email' ? 2 : undefined,
       })
-      alert('Configurações de recebimento atualizadas.')
+      handleActionResponse(data, 'Configurações de recebimento atualizadas.')
     } catch (err: any) {
       alert(`Erro ao atualizar configurações: ${err?.message ?? 'tente novamente'}`)
     }
@@ -250,13 +264,13 @@ export default function ApiForm({ initialData }: ApiFormProps) {
   const atualizarConfigPagamentos = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await postUserAction({
+      const data = await postUserAction({
         id: initialData.userId,
         type: 'update_api_data_pagamento',
         webhook_url_pagamento: pgWebhookUrl,
         verification: pgAutorizacao === 'Email' ? 2 : undefined,
       })
-      alert('Configurações de pagamento atualizadas.')
+      handleActionResponse(data, 'Configurações de pagamento atualizadas.')
     } catch (err: any) {
       alert(`Erro ao atualizar configurações (pagamentos): ${err?.message ?? 'tente novamente'}`)
     }

@@ -6,7 +6,7 @@ import { env } from '@/env.mjs'
 import VerifyOtp from './VerifyOtp'
 
 type PageProps = {
-  searchParams?: { [key: string]: string | string[] | undefined }
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
 }
 
 export default async function VerifyOtpPage({ searchParams }: PageProps) {
@@ -16,9 +16,10 @@ export default async function VerifyOtpPage({ searchParams }: PageProps) {
   }
 
   const token = (session.user as any)?.accessToken as string
-  const actionIdParam = Array.isArray(searchParams?.action_id)
-    ? searchParams?.action_id[0]
-    : searchParams?.action_id
+
+  const sp = (await searchParams) ?? {}
+  const actionIdParamRaw = sp['action_id']
+  const actionIdParam = Array.isArray(actionIdParamRaw) ? actionIdParamRaw[0] : actionIdParamRaw
   const query = actionIdParam ? `?action_id=${encodeURIComponent(actionIdParam)}` : ''
 
   const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/verify/otp${query}`, {

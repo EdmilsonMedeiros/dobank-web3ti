@@ -279,6 +279,7 @@ export default function VerifyOtp({
       </div>
 
       {/* Estilos equivalentes aos do Blade (adaptados) */}
+      {/* eslint-disable-next-line react/no-unknown-property */}
       <style jsx>{`
         .expired-time-circle {
           position: relative;

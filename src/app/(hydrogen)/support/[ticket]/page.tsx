@@ -6,7 +6,7 @@ import { env } from '@/env.mjs'
 import SupportView from './SupportView'
 
 type PageProps = {
-  params: { ticket: string }
+  params: Promise<{ ticket: string }>
 }
 
 export default async function SupportTicketPage({ params }: PageProps) {
@@ -18,9 +18,11 @@ export default async function SupportTicketPage({ params }: PageProps) {
   const u = session.user as any
   const token = (u?.accessToken as string) ?? ''
 
+  const { ticket } = await params
+
   // ✅ Endpoint correto da sua API:
   // GET /support/view/{ticket} -> { status, pageTitle, ticket, messages }
-  const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/support/view/${params.ticket}`, {
+  const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/support/view/${ticket}`, {
     headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
     cache: 'no-store',
   })
@@ -42,7 +44,7 @@ export default async function SupportTicketPage({ params }: PageProps) {
     <SupportView
       apiBaseUrl={env.NEXT_PUBLIC_API_BASE_URL}
       authToken={token}
-      ticketNumber={params.ticket}
+      ticketNumber={ticket}
       initialTicket={data.ticket}
       initialMessages={data.messages ?? []}
     />

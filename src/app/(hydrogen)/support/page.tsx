@@ -38,14 +38,15 @@ type ApiSupportsResponse = {
 export default async function SupportPage({
   searchParams,
 }: {
-  searchParams?: { page?: string }
+  searchParams?: Promise<{ page?: string }>
 }) {
   const session = await getServerSession(authOptions)
   if (!session) {
     return <p>Você precisa estar logado.</p>
   }
 
-  const page = Number(searchParams?.page ?? '1')
+  const { page: pageParam } = (await searchParams) ?? {}
+  const page = Number(pageParam ?? '1')
   const token = (session.user as any)?.accessToken as string
 
   const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/support?page=${page}`, {
