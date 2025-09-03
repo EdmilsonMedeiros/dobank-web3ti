@@ -21,6 +21,8 @@ interface Props {
   initialUser?: any
   initialActionId?: string
   pageTitle: string
+  initialSecondsLeft: number
+  initialClock: string
 }
 
 export default function VerifyOtp({
@@ -30,6 +32,8 @@ export default function VerifyOtp({
   initialUser,
   pageTitle,
   initialActionId,
+  initialSecondsLeft,
+  initialClock,
 }: Props) {
   const router = useRouter()
 
@@ -38,13 +42,8 @@ export default function VerifyOtp({
   const [submitting, setSubmitting] = useState(false)
   const [resending, setResending] = useState(false)
 
-  // segundos restantes (como no Blade, mas calculado no client)
-  const [secondsLeft, setSecondsLeft] = useState<number>(() => {
-    const now = Date.now()
-    const exp = action?.expired_at ? new Date(action.expired_at).getTime() : now
-    const s = Math.max(0, Math.floor((exp - now) / 1000))
-    return s
-  })
+  // segundos restantes (snapshot vindo do servidor p/ evitar hydration mismatch)
+  const [secondsLeft, setSecondsLeft] = useState<number>(Math.max(0, Number(initialSecondsLeft ?? 0)))
 
   // Atualiza contagem regressiva
   useEffect(() => {
@@ -64,7 +63,7 @@ export default function VerifyOtp({
   }, [action?.otp_type])
 
   // Quando tipo = 1, atualiza relógio a cada segundo (como no Blade)
-  const [clock, setClock] = useState<string>(() => new Date().toLocaleTimeString('pt-BR'))
+  const [clock, setClock] = useState<string>(initialClock)
   useEffect(() => {
     if (action?.otp_type !== 1) return
     const id = setInterval(() => setClock(new Date().toLocaleTimeString('pt-BR')), 1000)
@@ -87,7 +86,7 @@ export default function VerifyOtp({
       const next = data?.action as Action
       setAction(next)
 
-      // recalcula o timer
+      // recalcula o timer no client (ok após hydration)
       const now = Date.now()
       const exp = next?.expired_at ? new Date(next.expired_at).getTime() : now
       setSecondsLeft(Math.max(0, Math.floor((exp - now) / 1000)))
@@ -201,7 +200,9 @@ export default function VerifyOtp({
                         {/* Círculo com contagem (estilo do Blade adaptado) */}
                         <div className="mx-auto" style={{ maxWidth: '9em', height: '9em' }}>
                           <div className={`expired-time-circle ${expired ? 'danger-border' : ''}`}>
-                            <div className="exp-time text-2xl font-semibold">{secondsLeft}</div>
+                            <div className="exp-time text-2xl font-semibold" suppressHydrationWarning>
+                              {secondsLeft}
+                            </div>
                             <div>Segundos</div>
                             <div
                               className="animation-circle"
@@ -231,7 +232,7 @@ export default function VerifyOtp({
 
                     {action?.otp_type === 1 && (
                       <div className="text-center mt-4">
-                        <div className="text-lg" id="otp-time">
+                        <div className="text-lg" id="otp-time" suppressHydrationWarning>
                           {clock}
                         </div>
                       </div>

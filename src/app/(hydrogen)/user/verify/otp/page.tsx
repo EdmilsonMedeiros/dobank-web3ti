@@ -37,6 +37,10 @@ export default async function VerifyOtpPage({ searchParams }: PageProps) {
   }
 
   const data = await res.json()
+  const serverNow = Date.now()
+  const expMs = data?.action?.expired_at ? new Date(data.action.expired_at).getTime() : serverNow
+  const initialSecondsLeft = Math.max(0, Math.floor((expMs - serverNow) / 1000))
+  const initialClock = new Date(serverNow).toLocaleTimeString('pt-BR')
 
   return (
     <VerifyOtp
@@ -46,6 +50,8 @@ export default async function VerifyOtpPage({ searchParams }: PageProps) {
       initialUser={data?.user}
       pageTitle={data?.pageTitle ?? 'OTP Verification'}
       initialActionId={actionIdParam ?? String(data?.action?.id ?? '')}
+      initialSecondsLeft={initialSecondsLeft}
+      initialClock={initialClock}
     />
   )
 }
