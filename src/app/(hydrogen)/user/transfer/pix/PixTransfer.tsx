@@ -3,6 +3,7 @@
 
 import React from 'react'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
 type Bank = {
   name: string
@@ -26,6 +27,8 @@ type Beneficiary = {
 type JobLog = { id: number; status: string; message: string; created_at: string }
 
 type Props = {
+  apiBaseUrl: string
+  token: string
   user: {
     id: number
     name: string
@@ -48,16 +51,17 @@ type Props = {
 
 type TabKey = 'pix-key' | 'pix-import' | 'account-transfer'
 
-const clsInput = 'w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500'
+const clsInput =
+  'w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500'
 const clsLabel = 'block text-sm text-gray-600 mb-1.5'
-const clsBtn = 'btn btn-primary bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium'
+const clsBtn =
+  'btn btn-primary bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium'
 const box = 'intro-y box p-5 bg-white rounded-xl shadow-sm'
 
 function formatCurrencyBR(value: number, pfx = 'R$ ') {
   return pfx + value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 function maskCurrencyInput(v: string) {
-  // Aceita apenas números, monta centavos
   const onlyDigits = v.replace(/\D/g, '')
   const asNumber = Number(onlyDigits || '0') / 100
   return asNumber.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -77,7 +81,6 @@ function isValidEmail(s: string) {
 function isValidUUIDv4(s: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s)
 }
-// Validação simples para CPF/CNPJ (checa formato/quantidade de dígitos)
 function isValidCpfCnpj(s: string) {
   const nums = s.replace(/\D/g, '')
   return nums.length === 11 || nums.length === 14
@@ -85,23 +88,37 @@ function isValidCpfCnpj(s: string) {
 
 export default function PixTransfer(props: Props) {
   const {
-    user, gateway, pix, myUserBeneficiary, otherBeneficiaries, jobLogs, otherBanks, otpEnabled,
+    apiBaseUrl,
+    token,
+    user,
+    gateway,
+    pix,
+    myUserBeneficiary,
+    otherBeneficiaries,
+    jobLogs,
+    otherBanks,
+    otpEnabled,
   } = props
+
+  const router = useRouter()
 
   const [active, setActive] = React.useState<TabKey>('pix-key')
   const [toast, setToast] = React.useState<string | null>(null)
 
-  // ---- Estado: formulário "Chave Pix"
+  // ---- Form "Chave Pix"
   const [pixKeyType, setPixKeyType] = React.useState<Beneficiary['pix_key_type'] | ''>('')
-  const [telefoneNacionalidade, setTelefoneNacionalidade] = React.useState<'nacional' | 'internacional'>('nacional')
+  const [telefoneNacionalidade, setTelefoneNacionalidade] =
+    React.useState<'nacional' | 'internacional'>('nacional')
   const [pixKeyValue, setPixKeyValue] = React.useState('')
   const [pixAmount, setPixAmount] = React.useState('')
   const [pixDesc, setPixDesc] = React.useState('')
-  const [pixOtp, setPixOtp] = React.useState('')
+  const [authModePix, setAuthModePix] = React.useState<'Email'>('Email') // OTP: mesmo padrão da tela de APIs
 
-  // ---- Estado: formulário "Dados Bancários"
+  // ---- Form "Dados Bancários"
   const [bankName, setBankName] = React.useState('')
-  const [accType, setAccType] = React.useState<'CONTA_CORRENTE' | 'CONTA_POUPANCA' | 'CONTA_PAGAMENTO' | 'CONTA_FACIL' | 'ENTIDADES_PUBLICAS' | ''>('')
+  const [accType, setAccType] = React.useState<
+    'CONTA_CORRENTE' | 'CONTA_POUPANCA' | 'CONTA_PAGAMENTO' | 'CONTA_FACIL' | 'ENTIDADES_PUBLICAS' | ''
+  >('')
   const [accName, setAccName] = React.useState('')
   const [cpfCnpj, setCpfCnpj] = React.useState('')
   const [branch, setBranch] = React.useState('')
@@ -109,52 +126,91 @@ export default function PixTransfer(props: Props) {
   const [accDigit, setAccDigit] = React.useState('')
   const [accAmount, setAccAmount] = React.useState('')
   const [accDesc, setAccDesc] = React.useState('')
-  const [accOtp, setAccOtp] = React.useState('')
+  const [authModeAcc, setAuthModeAcc] = React.useState<'Email'>('Email')
 
-  // ---- Estado: Lista Transferências (exibição)
-  const [transfers, setTransfers] = React.useState(otherBeneficiaries.slice().reverse()) // só para render
+  // ---- Lista / busca
+  const [transfers] = React.useState(otherBeneficiaries.slice().reverse())
   const [searchBenef, setSearchBenef] = React.useState('')
 
-  // ---- Estado: Modal "Pix Recente"
+  // ---- Modal "Pix Recente"
   const [recentModalOpen, setRecentModalOpen] = React.useState(false)
   const [recentTarget, setRecentTarget] = React.useState<{
-    id: number; bank_name: string; name: string; limits: Bank
+    id: number
+    bank_name: string
+    name: string
+    limits: Bank
   } | null>(null)
   const [recentAmount, setRecentAmount] = React.useState('')
   const [recentDesc, setRecentDesc] = React.useState('')
-  const [recentOtp, setRecentOtp] = React.useState('')
+  const [authModeRecent, setAuthModeRecent] = React.useState<'Email'>('Email')
 
-  // ---- Estado: Modal Importar Planilha
+  // ---- Importar planilha
   const [importModalOpen, setImportModalOpen] = React.useState(false)
   const [jobSearch, setJobSearch] = React.useState('')
 
-  // Autocomplete simples para bancos (digita "code - name")
-  const bankOptions = otherBanks.map(b => `${b.code ?? b.ispb ?? ''} - ${b.name}`)
+  // autocomplete bancos
+  const bankOptions = otherBanks.map((b) => `${b.code ?? b.ispb ?? ''} - ${b.name}`)
 
   const limitsText = (() => {
     const fixed = user.negociated_pix_payment ? user.pix_fixed_charge : gateway.fixed_charge
     const percent = user.negociated_pix_payment ? user.pix_percent_charge : gateway.percent_charge
-    return `Limites: ${formatCurrencyBR(pix.minimum_limit, '')}-${formatCurrencyBR(pix.maximum_limit, '')}  Tarifa: ${formatCurrencyBR(fixed, '')} + ${percent}%`
+    return `Limites: ${formatCurrencyBR(pix.minimum_limit, '')}-${formatCurrencyBR(
+      pix.maximum_limit,
+      '',
+    )}  Tarifa: ${formatCurrencyBR(fixed, '')} + ${percent}%`
   })()
 
-  // Helpers de UI
   function showToast(msg: string) {
     setToast(msg)
     setTimeout(() => setToast(null), 2500)
   }
 
-  // ---- Handlers: Chave Pix
+  // ========== LÓGICA DE OTP / AÇÕES ==========
+  async function postUserAction(body: Record<string, any>) {
+    const res = await fetch(`${apiBaseUrl}/user/action`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+      cache: 'no-store',
+    })
+    const json = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      throw new Error(json?.message || 'Falha ao processar a ação')
+    }
+    return json
+  }
+
+  function handleActionResponse(data: any, fallbackMsg: string) {
+    // mesmo comportamento do /user/apis
+    if (data?.action_id || data?.status === 'pending_otp') {
+      const id = data?.action_id ?? data?.action?.id
+      const qs = id ? `?action_id=${encodeURIComponent(String(id))}` : ''
+      router.push(`/user/verify/otp${qs}`)
+      return
+    }
+    if (data?.status === 'success' && data?.redirect_to) {
+      window.location.href = data.redirect_to
+      return
+    }
+    showToast(data?.message ?? fallbackMsg)
+  }
+
+  // ===== Validadores de chave (iguais ao Blade)
   function onPixKeyBlur() {
     const v = pixKeyValue.trim()
     if (pixKeyType === 'CPF' || pixKeyType === 'CNPJ') {
       if (!isValidCpfCnpj(v)) return alert('CPF/CNPJ inválido!')
     }
     if (pixKeyType === 'EMAIL' && !isValidEmail(v)) return alert('E-mail inválido!')
-    if (pixKeyType === 'CHAVE_ALEATORIA' && !isValidUUIDv4(v)) return alert('Chave aleatória inválida!')
+    if (pixKeyType === 'CHAVE_ALEATORIA' && !isValidUUIDv4(v))
+      return alert('Chave aleatória inválida!')
     if (pixKeyType === 'TELEFONE') {
       const digits = v.replace(/\D/g, '')
       if (telefoneNacionalidade === 'nacional') {
-        // força +55
         if (!v.startsWith('+55')) setPixKeyValue('+55' + digits)
         const len = digits.length
         if (len < 10 || len > 13) return alert('Telefone nacional inválido!')
@@ -164,22 +220,36 @@ export default function PixTransfer(props: Props) {
     }
   }
 
-  function submitPixKey(e: React.FormEvent) {
+  // ====== SUBMITS (agora reais, com OTP via e-mail) ======
+  async function submitPixKey(e: React.FormEvent) {
     e.preventDefault()
     const amount = parseCurrencyBR(pixAmount)
     if (!pixKeyType) return alert('Escolha o tipo de chave')
     if (!pixKeyValue) return alert('Digite a chave')
-    if (amount < pix.minimum_limit || amount > pix.maximum_limit) return alert('Valor fora dos limites')
+    if (amount < pix.minimum_limit || amount > pix.maximum_limit)
+      return alert('Valor fora dos limites')
 
-    // Simula criação de transferência
-    showToast('Transferência Pix criada (simulação)')
-    setPixDesc('')
-    setPixAmount('')
-    setPixOtp('')
+    try {
+      const data = await postUserAction({
+        type: 'pix_transfer',
+        id: 0,
+        pix_key_type: pixKeyType,
+        pix_key: pixKeyValue,
+        amount,
+        pix_description: pixDesc || undefined,
+        short_name: 'CONTA_CORRENTE',
+        // mesma regra da tela de APIs:
+        verification: otpEnabled && authModePix === 'Email' ? 2 : undefined,
+      })
+      handleActionResponse(data, 'Transferência criada.')
+      setPixDesc('')
+      setPixAmount('')
+    } catch (err: any) {
+      alert(err?.message ?? 'Não foi possível criar a transferência.')
+    }
   }
 
-  // ---- Handlers: Dados Bancários
-  function submitAccountTransfer(e: React.FormEvent) {
+  async function submitAccountTransfer(e: React.FormEvent) {
     e.preventDefault()
     const amount = parseCurrencyBR(accAmount)
     if (!bankName) return alert('Informe o nome do banco')
@@ -187,59 +257,100 @@ export default function PixTransfer(props: Props) {
     if (!accName) return alert('Informe o nome completo')
     if (!isValidCpfCnpj(cpfCnpj)) return alert('CPF/CNPJ inválido!')
     if (!branch || !accNumber || !accDigit) return alert('Preencha agência, conta e dígito')
-    if (amount < pix.minimum_limit || amount > pix.maximum_limit) return alert('Valor fora dos limites')
+    if (amount < pix.minimum_limit || amount > pix.maximum_limit)
+      return alert('Valor fora dos limites')
 
-    showToast('Transferência via dados bancários criada (simulação)')
-    setAccDesc('')
-    setAccAmount('')
-    setAccOtp('')
+    try {
+      const data = await postUserAction({
+        type: 'pix_transfer',
+        id: 0,
+        bank: bankName,
+        short_name: accType,
+        account_name: accName,
+        cpf_cnpj: cpfCnpj,
+        bank_branch: branch,
+        account_number: accNumber,
+        account_digit: accDigit,
+        amount,
+        pix_description: accDesc || undefined,
+        // short_name: 'CONTA_CORRENTE',
+        verification: otpEnabled && authModeAcc === 'Email' ? 2 : undefined,
+      })
+      handleActionResponse(data, 'Transferência criada.')
+      setAccDesc('')
+      setAccAmount('')
+    } catch (err: any) {
+      alert(err?.message ?? 'Não foi possível criar a transferência.')
+    }
   }
 
-  // ---- Handlers: Modal Pix Recente
-  function openSendModalFrom(benef: { id: number; bank: Bank; account_name?: string }, bankName: string) {
-    setRecentTarget({ id: benef.id, bank_name: bankName, name: benef.account_name || '—', limits: benef.bank })
+  function openSendModalFrom(
+    benef: { id: number; bank: Bank; account_name?: string },
+    bankName: string,
+  ) {
+    setRecentTarget({
+      id: benef.id,
+      bank_name: bankName,
+      name: benef.account_name || '—',
+      limits: benef.bank,
+    })
     setRecentAmount('')
     setRecentDesc('')
-    setRecentOtp('')
     setRecentModalOpen(true)
   }
-  function submitRecent(e: React.FormEvent) {
+
+  async function submitRecent(e: React.FormEvent) {
     e.preventDefault()
     if (!recentTarget) return
     const amount = parseCurrencyBR(recentAmount)
-    if (amount < pix.minimum_limit || amount > pix.maximum_limit) return alert('Valor fora dos limites')
-    showToast('Pix enviado (simulação)')
-    setRecentModalOpen(false)
+    if (amount < pix.minimum_limit || amount > pix.maximum_limit)
+      return alert('Valor fora dos limites')
+
+    try {
+      const data = await postUserAction({
+        type: 'pix_transfer',
+        id: Number(recentTarget.id), // igual ao Blade: envia id do beneficiário
+        amount,
+        pix_description: recentDesc || undefined,
+        short_name: 'CONTA_CORRENTE',
+        verification: otpEnabled && authModeRecent === 'Email' ? 2 : undefined,
+      })
+      handleActionResponse(data, 'Pix enviado.')
+      setRecentModalOpen(false)
+    } catch (err: any) {
+      alert(err?.message ?? 'Não foi possível enviar o Pix.')
+    }
   }
 
-  // ---- Exportações (tabela)
+  // ===== Exportações / filtros (iguais)
   function filteredBenefs() {
     const q = searchBenef.trim().toLowerCase()
     if (!q) return transfers
-    return transfers.filter(b =>
-      (b.bank?.name || '').toLowerCase().includes(q) ||
-      (b.account_name || '').toLowerCase().includes(q) ||
-      (b.account_number || '').toLowerCase().includes(q) ||
-      (b.pix_key || '').toLowerCase().includes(q),
+    return transfers.filter(
+      (b) =>
+        (b.bank?.name || '').toLowerCase().includes(q) ||
+        (b.account_name || '').toLowerCase().includes(q) ||
+        (b.account_number || '').toLowerCase().includes(q) ||
+        (b.pix_key || '').toLowerCase().includes(q),
     )
   }
   function copyTable() {
-    const rows = filteredBenefs().map(b => [
+    const rows = filteredBenefs().map((b) => [
       b.bank?.name ?? '',
-      b.account_number ? b.account_number : (b.pix_key ?? ''),
+      b.account_number ? b.account_number : b.pix_key ?? '',
       b.account_name ?? '',
     ])
-    const text = ['Banco\tConta/Chave\tNome', ...rows.map(r => r.join('\t'))].join('\n')
+    const text = ['Banco\tConta/Chave\tNome', ...rows.map((r) => r.join('\t'))].join('\n')
     copyToClipboard(text)
     showToast('Tabela copiada')
   }
   function exportCSV() {
-    const rows = filteredBenefs().map(b => [
+    const rows = filteredBenefs().map((b) => [
       `"${b.bank?.name ?? ''}"`,
-      `"${b.account_number ? b.account_number : (b.pix_key ?? '')}"`,
+      `"${b.account_number ? b.account_number : b.pix_key ?? ''}"`,
       `"${b.account_name ?? ''}"`,
     ])
-    const csv = ['"Banco","Conta/Chave","Nome"', ...rows.map(r => r.join(','))].join('\n')
+    const csv = ['"Banco","Conta/Chave","Nome"', ...rows.map((r) => r.join(','))].join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -251,21 +362,24 @@ export default function PixTransfer(props: Props) {
     URL.revokeObjectURL(url)
   }
 
-  // ---- Exportações Jobs (tabela importações)
   function filteredJobs() {
     const q = jobSearch.trim().toLowerCase()
     if (!q) return jobLogs
-    return jobLogs.filter(j => [j.id, j.status, j.message, j.created_at].join(' ').toLowerCase().includes(q))
+    return jobLogs.filter((j) =>
+      [j.id, j.status, j.message, j.created_at].join(' ').toLowerCase().includes(q),
+    )
   }
   function copyJobs() {
     const header = 'Job ID\tStatus\tMensagem\tCriado em'
-    const rows = filteredJobs().map(j => `${j.id}\t${j.status}\t${j.message}\t${j.created_at}`)
+    const rows = filteredJobs().map((j) => `${j.id}\t${j.status}\t${j.message}\t${j.created_at}`)
     copyToClipboard([header, ...rows].join('\n'))
     showToast('Importações copiadas')
   }
   function exportJobsCSV() {
     const header = '"Job ID","Status","Mensagem","Criado em"'
-    const rows = filteredJobs().map(j => `"${j.id}","${j.status}","${j.message}","${j.created_at}"`)
+    const rows = filteredJobs().map(
+      (j) => `"${j.id}","${j.status}","${j.message}","${j.created_at}"`,
+    )
     const csv = [header, ...rows].join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -281,7 +395,7 @@ export default function PixTransfer(props: Props) {
   // ---- UI
   return (
     <div className="content">
-      {/* Top bar / breadcrumb (simples) */}
+      {/* Top bar */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <p className="text-sm text-gray-500">Área Pix</p>
@@ -303,7 +417,11 @@ export default function PixTransfer(props: Props) {
         <ul className="nav nav-boxed-tabs active grid grid-cols-3 gap-2">
           <li className="nav-item">
             <button
-              className={`nav-link w-full py-2 ${active === 'pix-key' ? 'active bg-blue-50 border border-blue-200 rounded-md' : 'bg-white border rounded-md'}`}
+              className={`nav-link w-full py-2 ${
+                active === 'pix-key'
+                  ? 'active bg-blue-50 border border-blue-200 rounded-md'
+                  : 'bg-white border rounded-md'
+              }`}
               onClick={() => setActive('pix-key')}
             >
               Chave Pix
@@ -313,7 +431,11 @@ export default function PixTransfer(props: Props) {
           {user.transferencia_pix_planilha && (
             <li className="nav-item">
               <button
-                className={`nav-link w-full py-2 ${active === 'pix-import' ? 'active bg-blue-50 border border-blue-200 rounded-md' : 'bg-white border rounded-md'}`}
+                className={`nav-link w-full py-2 ${
+                  active === 'pix-import'
+                    ? 'active bg-blue-50 border border-blue-200 rounded-md'
+                    : 'bg-white border rounded-md'
+                }`}
                 onClick={() => setActive('pix-import')}
               >
                 Importar Planilha
@@ -323,7 +445,11 @@ export default function PixTransfer(props: Props) {
 
           <li className="nav-item">
             <button
-              className={`nav-link w-full py-2 ${active === 'account-transfer' ? 'active bg-blue-50 border border-blue-200 rounded-md' : 'bg-white border rounded-md'}`}
+              className={`nav-link w-full py-2 ${
+                active === 'account-transfer'
+                  ? 'active bg-blue-50 border border-blue-200 rounded-md'
+                  : 'bg-white border rounded-md'
+              }`}
               onClick={() => setActive('account-transfer')}
             >
               Dados Bancários
@@ -339,13 +465,13 @@ export default function PixTransfer(props: Props) {
           <div id="pix-key-tab" className={box}>
             <div className="flex items-center justify-between">
               <h4 className="text-gray-900">Dados da Chave Pix</h4>
-              {user.my_user_beneficiarie_id !== 0 && (
+              {user.my_user_beneficiarie_id !== 0 && myUserBeneficiary?.bank?.name !== '—' && (
                 <button
                   className={clsBtn}
                   onClick={() =>
                     openSendModalFrom(
                       { id: myUserBeneficiary.id, bank: myUserBeneficiary.bank, account_name: myUserBeneficiary.account_name },
-                      myUserBeneficiary.bank.name
+                      myUserBeneficiary.bank.name,
                     )
                   }
                 >
@@ -355,7 +481,8 @@ export default function PixTransfer(props: Props) {
             </div>
 
             <form className="mt-4 space-y-4" onSubmit={submitPixKey}>
-              {/* <div>
+              {/* Tipo de chave (necessário para a API) */}
+              <div>
                 <label className={clsLabel}>Tipo de Chave *</label>
                 <select
                   className={clsInput}
@@ -370,7 +497,7 @@ export default function PixTransfer(props: Props) {
                   <option value="EMAIL">Email</option>
                   <option value="CHAVE_ALEATORIA">Chave Aleatoria</option>
                 </select>
-              </div> */}
+              </div>
 
               {pixKeyType === 'TELEFONE' && (
                 <div className="flex items-center gap-6">
@@ -431,15 +558,20 @@ export default function PixTransfer(props: Props) {
                 <input className={clsInput} value={pixDesc} onChange={(e) => setPixDesc(e.target.value)} />
               </div>
 
+              {/* Modo de autorização (OTP via email) */}
               {otpEnabled && (
                 <div>
-                  <label className={clsLabel}>OTP</label>
-                  <input className={clsInput} value={pixOtp} onChange={(e) => setPixOtp(e.target.value)} placeholder="******" />
+                  <label className={clsLabel}>Modo de autorização *</label>
+                  <select className={clsInput} value={authModePix} onChange={(e) => setAuthModePix(e.target.value as any)} required>
+                    <option value="Email">Email</option>
+                  </select>
                 </div>
               )}
 
               <div className="text-right">
-                <button className={clsBtn} type="submit">Submit</button>
+                <button className={clsBtn} type="submit">
+                  Submit
+                </button>
               </div>
             </form>
           </div>
@@ -450,14 +582,22 @@ export default function PixTransfer(props: Props) {
           <div id="pix-key-import" className={box}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-gray-900">Minhas Importações</h2>
-              <button className={clsBtn} onClick={() => setImportModalOpen(true)}>Importar Planilha</button>
+              <button className={clsBtn} onClick={() => setImportModalOpen(true)}>
+                Importar Planilha
+              </button>
             </div>
 
             <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
               <div className="flex items-center gap-3">
-                <button className="btn box border px-3 py-2 text-sm" onClick={copyJobs}>Copiar Dados</button>
-                <button className="btn box border px-3 py-2 text-sm" onClick={exportJobsCSV}>Exportar para CSV</button>
-                <button className="btn box border px-3 py-2 text-sm" onClick={() => window.print()}>Exportar para PDF</button>
+                <button className="btn box border px-3 py-2 text-sm" onClick={copyJobs}>
+                  Copiar Dados
+                </button>
+                <button className="btn box border px-3 py-2 text-sm" onClick={exportJobsCSV}>
+                  Exportar para CSV
+                </button>
+                <button className="btn box border px-3 py-2 text-sm" onClick={() => window.print()}>
+                  Exportar para PDF
+                </button>
               </div>
               <div className="ml-auto">
                 <input
@@ -488,41 +628,63 @@ export default function PixTransfer(props: Props) {
                       <td className="py-2 pr-3">{log.message}</td>
                       <td className="py-2 pr-3">{log.created_at}</td>
                       <td className="py-2 pr-3">
-                        <button className="text-blue-600 hover:underline text-sm" onClick={() => alert(`Detalhes #${log.id} (simulação)`)}>Detalhes</button>
+                        <button
+                          className="text-blue-600 hover:underline text-sm"
+                          onClick={() => alert(`Detalhes #${log.id} (simulação)`)}
+                        >
+                          Detalhes
+                        </button>
                       </td>
                     </tr>
                   ))}
                   {filteredJobs().length === 0 && (
                     <tr>
-                      <td colSpan={5} className="py-4 text-center text-gray-500">Sem registros</td>
+                      <td colSpan={5} className="py-4 text-center text-gray-500">
+                        Sem registros
+                      </td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
 
-            {/* Modal Importar Planilha */}
             {importModalOpen && (
               <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
                 <div className="bg-white rounded-xl shadow-lg w-full max-w-3xl">
                   <div className="flex items-center justify-between p-4 border-b">
                     <h5 className="text-gray-900">Importar Planilha</h5>
-                    <button onClick={() => setImportModalOpen(false)} className="text-gray-500">✕</button>
+                    <button onClick={() => setImportModalOpen(false)} className="text-gray-500">
+                      ✕
+                    </button>
                   </div>
                   <div className="p-6 space-y-4">
-                    <a href="/assets/docs/planilha-padrao-chave-pix.xlsx" className="inline-block bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm">
+                    <a
+                      href="/assets/docs/planilha-padrao-chave-pix.xlsx"
+                      className="inline-block bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm"
+                    >
                       Baixar Planilha Modelo
                     </a>
-                    <p><strong>Após a importação da planilha:</strong></p>
-                    <p>Os dados serão validados e processados automaticamente. Você receberá um relatório com o status da importação e quaisquer erros encontrados.</p>
+                    <p>
+                      <strong>Após a importação da planilha:</strong>
+                    </p>
+                    <p>
+                      Os dados serão validados e processados automaticamente. Você receberá um relatório com o status da
+                      importação e quaisquer erros encontrados.
+                    </p>
 
                     <div>
                       <label className={clsLabel}>Selecione a planilha *</label>
-                      <input type="file" accept=".xlsx,.xls" className={clsInput} onChange={() => { /* apenas UI */ }} />
+                      <input type="file" accept=".xlsx,.xls" className={clsInput} onChange={() => {}} />
                     </div>
                   </div>
                   <div className="p-4 border-t text-right">
-                    <button className={clsBtn} onClick={() => { setImportModalOpen(false); showToast('Arquivo enviado (simulação)') }}>
+                    <button
+                      className={clsBtn}
+                      onClick={() => {
+                        setImportModalOpen(false)
+                        showToast('Arquivo enviado (simulação)')
+                      }}
+                    >
                       Importar
                     </button>
                   </div>
@@ -537,13 +699,13 @@ export default function PixTransfer(props: Props) {
           <div id="account-transfer-tab" className={box}>
             <div className="flex items-center justify-between">
               <h4 className="text-gray-900">Dados Bancários</h4>
-              {user.my_user_beneficiarie_id !== 0 && (
+              {user.my_user_beneficiarie_id !== 0 && myUserBeneficiary?.bank?.name !== '—' && (
                 <button
                   className={clsBtn}
                   onClick={() =>
                     openSendModalFrom(
                       { id: myUserBeneficiary.id, bank: myUserBeneficiary.bank, account_name: myUserBeneficiary.account_name },
-                      myUserBeneficiary.bank.name
+                      myUserBeneficiary.bank.name,
                     )
                   }
                 >
@@ -627,13 +789,17 @@ export default function PixTransfer(props: Props) {
 
               {otpEnabled && (
                 <div>
-                  <label className={clsLabel}>OTP</label>
-                  <input className={clsInput} value={accOtp} onChange={(e) => setAccOtp(e.target.value)} placeholder="******" />
+                  <label className={clsLabel}>Modo de autorização *</label>
+                  <select className={clsInput} value={authModeAcc} onChange={(e) => setAuthModeAcc(e.target.value as any)} required>
+                    <option value="Email">Email</option>
+                  </select>
                 </div>
               )}
 
               <div className="text-right">
-                <button className={clsBtn} type="submit">Submit</button>
+                <button className={clsBtn} type="submit">
+                  Submit
+                </button>
               </div>
             </form>
           </div>
@@ -650,9 +816,15 @@ export default function PixTransfer(props: Props) {
 
             <div className="col-span-12 flex flex-col lg:flex-row gap-4 items-start lg:items-center">
               <div className="flex items-center gap-3">
-                <button className="btn box border px-3 py-2 text-sm" onClick={copyTable}>Copiar Dados</button>
-                <button className="btn box border px-3 py-2 text-sm" onClick={exportCSV}>Exportar para Excel (CSV)</button>
-                <button className="btn box border px-3 py-2 text-sm" onClick={() => window.print()}>Exportar para PDF</button>
+                <button className="btn box border px-3 py-2 text-sm" onClick={copyTable}>
+                  Copiar Dados
+                </button>
+                <button className="btn box border px-3 py-2 text-sm" onClick={exportCSV}>
+                  Exportar para Excel (CSV)
+                </button>
+                <button className="btn box border px-3 py-2 text-sm" onClick={() => window.print()}>
+                  Exportar para PDF
+                </button>
               </div>
               <div className="ml-auto">
                 <input
@@ -681,14 +853,13 @@ export default function PixTransfer(props: Props) {
                       <td className="py-2 pr-3 text-slate-600">
                         {b.bank?.name === 'Dobank_PIX'
                           ? `${b.pix_key_type ?? ''} ${b.pix_key ?? ''}`
-                          : (b.account_number ? b.account_number : (b.pix_key ?? ''))}
+                          : b.account_number
+                          ? b.account_number
+                          : b.pix_key ?? ''}
                       </td>
                       <td className="py-2 pr-3 text-slate-600">{b.account_name || b.pix_key || '—'}</td>
                       <td className="py-2 pr-3">
-                        <button
-                          className={`${clsBtn} w-24`}
-                          onClick={() => openSendModalFrom(b, b.bank?.name || '—')}
-                        >
+                        <button className={`${clsBtn} w-24`} onClick={() => openSendModalFrom(b, b.bank?.name || '—')}>
                           Transferir
                         </button>
                       </td>
@@ -696,13 +867,14 @@ export default function PixTransfer(props: Props) {
                   ))}
                   {filteredBenefs().length === 0 && (
                     <tr>
-                      <td colSpan={4} className="py-4 text-center text-gray-500">Sem registros</td>
+                      <td colSpan={4} className="py-4 text-center text-gray-500">
+                        Sem registros
+                      </td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
-
           </div>
         </div>
       </div>
@@ -713,7 +885,9 @@ export default function PixTransfer(props: Props) {
           <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl">
             <div className="flex items-center justify-between p-4 border-b">
               <h5 className="text-gray-900">Pix Recente</h5>
-              <button className="text-gray-500" onClick={() => setRecentModalOpen(false)}>✕</button>
+              <button className="text-gray-500" onClick={() => setRecentModalOpen(false)}>
+                ✕
+              </button>
             </div>
 
             <form onSubmit={submitRecent}>
@@ -752,21 +926,30 @@ export default function PixTransfer(props: Props) {
 
                 {otpEnabled && (
                   <div>
-                    <label className={clsLabel}>OTP</label>
-                    <input className={clsInput} value={recentOtp} onChange={(e) => setRecentOtp(e.target.value)} placeholder="******" />
+                    <label className={clsLabel}>Modo de autorização *</label>
+                    <select
+                      className={clsInput}
+                      value={authModeRecent}
+                      onChange={(e) => setAuthModeRecent(e.target.value as any)}
+                      required
+                    >
+                      <option value="Email">Email</option>
+                    </select>
                   </div>
                 )}
               </div>
 
               <div className="p-4 border-t text-right">
-                <button className={clsBtn} type="submit">Send</button>
+                <button className={clsBtn} type="submit">
+                  Send
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Toast simples */}
+      {/* Toast */}
       {toast && (
         <div className="fixed bottom-4 right-4 bg-gray-900 text-white text-sm px-4 py-2 rounded-md shadow">
           {toast}
