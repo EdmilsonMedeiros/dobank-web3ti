@@ -50,7 +50,7 @@ export default async function PixTransferPage() {
     maximum_limit: toNum(data?.pix?.maximum_limit, 0),
   }
 
-  // Beneficiário próprio (a API pode não embutir o objeto 'bank'; preencho limites com os do PIX)
+  // Beneficiário próprio
   const myUserBeneficiary = data?.myUserBeneficiary
     ? {
         id: Number(data.myUserBeneficiary.id),
@@ -96,10 +96,10 @@ export default async function PixTransferPage() {
       }))
     : []
 
-  // Config de moeda (igual ao mock)
+  // Config de moeda
   const langToMoney = { decimal: ',', thousands: '.', precision: 2, prefix: 'R$ ' }
 
-  // Lógica OTP: usaremos fluxo de ação+verificação por Email (verification: 2)
+  // OTP via Email (verification: 2)
   const otpEnabled = true
 
   return (
