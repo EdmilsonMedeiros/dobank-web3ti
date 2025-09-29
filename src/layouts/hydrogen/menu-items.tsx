@@ -48,11 +48,11 @@ export const menuItems: MenuItem[] = [
     dropdownItems: [
       {
         name: "Transferências",
-        href: routes.core.transfers(),
+        href: routes.core.transfers,
       },
       {
         name: "Meus limites",
-        href: routes.core.myLimits(),
+        href: routes.core.myLimits,
       },
     ],
   },
@@ -64,13 +64,13 @@ export const menuItems: MenuItem[] = [
   },
   {
     name: "Cobrança",
-    href: routes.core.charges(),
+    href: routes.core.charges,
     icon: <TbCashRegister />,
     badge: "",
   },
   {
     name: "P2P",
-    href: routes.core.p2p(),
+    href: routes.core.p2p,
     icon: <RiP2pFill />,
   },
 

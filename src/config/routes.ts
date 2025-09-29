@@ -16,12 +16,11 @@ export const routes = {
     // Geral
     createCharge: "/dashboard?", // “Emitir Cobrança”
     dashboard: "/dashboard", // “Dashboard”
-    transfers: () => `${LEGACY_BASE}/user/transfer/pix`, // “Transferências”
-    myLimits: () => `${LEGACY_BASE}/user/transfer/log`, // “Meus limites”
-    // payments: () => `${LEGACY_BASE}/user/billet`, // “Pagamentos”
+    transfers: "/user/transfer/pix", // “Transferências”
+    myLimits: "/user/transfer/log", // “Meus limites”
     payments: () => "/payments", // “Pagamentos”
-    charges: () => `${LEGACY_BASE}/user/receipt/history`, // “Cobrança”
-    p2p: () => `${LEGACY_BASE}/user/transfer/own`, // “P2P”
+    charges: "/user/receipt/history", // “Cobrança”
+    p2p: "/user/transfer/own", // “P2P”
     pdv: () => `${LEGACY_BASE}/user/smspos/show`, // “PDV”
     transactions: () => `${LEGACY_BASE}/user/transactions`, // “Transações”
 
