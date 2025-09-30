@@ -16,7 +16,7 @@ export default function SignInForm() {
   const onSubmit = async (data: LoginSchema) => {
     setErrorMessage(null);
 
-    // 1) Autentica via NextAuth (authorize no servidor)
+    // 1) Autentica via NextAuth (sem redirecionar automaticamente)
     const result = await signIn('credentials', {
       redirect: false,
       email: data.email,
@@ -29,15 +29,23 @@ export default function SignInForm() {
       return;
     }
 
-    // 2) Se existir legacyLoginUrl, redireciona full para lá (Laravel trata e volta)
+    // 2) Força a leitura/hidratação da sessão no seu domínio
     const session = await getSession();
-    const legacyUrl = session?.user?.legacyLoginUrl;
+    if (!session) {
+      setErrorMessage('Falha ao iniciar sessão. Tente novamente.');
+      return;
+    }
+
+    // 3) Se existir URL do legado, sai do app e deixa o Laravel tratar
+    const legacyUrl = session.user?.legacyLoginUrl;
     if (legacyUrl) {
+      // (opcional) pequeno delay para garantir flush do cookie antes de trocar de domínio
+      await new Promise((r) => setTimeout(r, 50));
       window.location.href = legacyUrl;
       return;
     }
 
-    // 3) Caso não haja legacyUrl, cai aqui
+    // 4) Caso não tenha legado, segue o fluxo normal
     router.push(result?.url || routes.core.dashboard);
   };
 
@@ -60,7 +68,7 @@ export default function SignInForm() {
               type="email"
               label="Email"
               {...register('email')}
-              // error={errors.email?.message}
+            // error={errors.email?.message}
             />
             <Password
               label="Password"
