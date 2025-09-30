@@ -60,7 +60,7 @@ export default function SignInForm() {
               type="email"
               label="Email"
               {...register('email')}
-              error={errors.email?.message}
+              // error={errors.email?.message}
             />
             <Password
               label="Password"
@@ -73,25 +73,6 @@ export default function SignInForm() {
                 Esqueceu a senha?
               </Link>
             </div>
-
-            {/* —— Bloco de Captcha + OTP —— */}
-            <div className="flex w-full items-center justify-center space-x-12">
-              {/* 1) Espaço em branco para os dígitos do captcha */}
-              <div className="flex-shrink-0 flex items-center justify-center w-36 h-12 bg-gray-100 rounded-lg">
-                {/* aqui, no futuro, você pode usar <Image src={captcha} /> */}
-              </div>
-
-              {/* 2) Entrada do OTP */}
-              <div className="flex-shrink-0 flex items-center justify-center w-40 h-12 bg-white rounded-lg">
-                <PinCode
-                  variant="outline"
-                  size="lg"
-                  className="w-full"
-                /* setValue se necessário */
-                />
-              </div>
-            </div>
-            {/* ———————————————— */}
 
             <Button type="submit" className="w-full">
               Entrar

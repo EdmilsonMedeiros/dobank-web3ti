@@ -501,7 +501,7 @@ export default function PixTransfer(props: Props) {
             </li>
           )}
 
-          <li className="nav-item">
+          {/* <li className="nav-item">
             <button
               className={`nav-link w-full py-2 ${
                 active === 'account-transfer' ? 'active bg-blue-50 border border-blue-200 rounded-md' : 'bg-white border rounded-md'
@@ -510,7 +510,7 @@ export default function PixTransfer(props: Props) {
             >
               Dados Bancários
             </button>
-          </li>
+          </li> */}
         </ul>
       </div>
 
