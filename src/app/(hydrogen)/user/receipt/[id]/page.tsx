@@ -54,14 +54,16 @@ type ApiPayload = {
 export default async function ReceiptViewPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
+
   const session = await getServerSession(authOptions)
   if (!session) return <p>Você precisa estar logado.</p>
 
   const token = (session.user as any)?.accessToken as string
 
-  const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/receipt/${params.id}`, {
+  const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/receipt/${id}`, {
     headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
     cache: 'no-store',
   })

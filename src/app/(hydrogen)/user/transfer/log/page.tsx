@@ -23,16 +23,20 @@ type Paginator<T> = {
 export default async function TransferLogPage({
   searchParams,
 }: {
-  searchParams?: { page?: string }
+  // 👇 Ajuste: o projeto espera searchParams como Promise
+  searchParams?: Promise<{ page?: string }>
 }) {
   const session = await getServerSession(authOptions)
   if (!session) return <p>Você precisa estar logado.</p>
 
   const token = (session.user as any)?.accessToken as string
 
+  // resolve os searchParams (se existirem)
+  const sp = searchParams ? await searchParams : undefined
+
   const apiUrl = new URL(`${env.NEXT_PUBLIC_API_BASE_URL}/transfer/log`)
   apiUrl.searchParams.set('per_page', '10')
-  if (searchParams?.page) apiUrl.searchParams.set('page', searchParams.page)
+  if (sp?.page) apiUrl.searchParams.set('page', sp.page)
 
   const res = await fetch(apiUrl.toString(), {
     headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },

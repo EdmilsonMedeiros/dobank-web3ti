@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/auth-options'
 import { env } from '@/env.mjs'
 import React from 'react'
 import ReceiptHistoryTable from './ReceiptHistoryTable'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,12 +51,12 @@ export default async function ReceiptHistoryPage() {
       <div className="p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex gap-2">
-            <a
+            <Link
               href="/user/receipt/create"
               className="btn bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700"
             >
               Criar Cobrança
-            </a>
+            </Link>
             {/* Quando houver condição de Sankhya, habilite este: 
             {isSankhyaActive && (
               <a

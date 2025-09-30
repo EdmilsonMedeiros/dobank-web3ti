@@ -450,7 +450,9 @@ export default function CreateReceiptForm({ apiBaseUrl, token }: Props) {
 }
 
 /** Componentes de UI simples **/
-function Field(props: React.InputHTMLAttributes<HTMLInputElement> & { label: string; className?: string }) {
+function Field(
+  props: React.InputHTMLAttributes<HTMLInputElement> & { label: string; className?: string },
+) {
   const { label, className, ...rest } = props
   return (
     <div className={className}>
@@ -458,8 +460,7 @@ function Field(props: React.InputHTMLAttributes<HTMLInputElement> & { label: str
       <input
         {...rest}
         className={
-          'form-control w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 ' +
-          (rest.className || '')
+          'form-control w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500'
         }
       />
     </div>

@@ -48,15 +48,18 @@ function fmtDate(iso?: string | null) {
 export default async function TransferReceiptPage({
   params,
 }: {
-  params: { id: string }
+  // 👇 Ajuste para o tipo esperado pelo projeto (params como Promise)
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
+
   const session = await getServerSession(authOptions)
   if (!session) return <p className="p-6">Você precisa estar logado.</p>
 
   const token = (session.user as any)?.accessToken as string
   const API_BASE = env.NEXT_PUBLIC_API_BASE_URL
-  const WEB_BASE = env.NEXT_PUBLIC_WEB_BASE_URL
-  const id = params.id
+  // const WEB_BASE = env.NEXT_PUBLIC_WEB_BASE_URL
+  const WEB_BASE = "NEXT_PUBLIC_WEB_BASE_URL"
 
   // GET /api/transfer/log/{id} -> { pageTitle, transfer, user }
   const res = await fetch(`${API_BASE}/transfer/log/${id}`, {
