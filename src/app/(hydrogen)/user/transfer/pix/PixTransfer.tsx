@@ -275,7 +275,7 @@ export default function PixTransfer(props: Props) {
     e.preventDefault()
     const amount = parseCurrencyBR(pixAmount)
     if (!pixKeyValue.trim()) return alert('Digite a chave')
-    if (amount < pix.minimum_limit || amount > pix.maximum_limit) return alert('Valor fora dos limites')
+    // if (amount < pix.minimum_limit || amount > pix.maximum_limit) return alert('Valor fora dos limites')
 
     const det = detectPixType(pixKeyValue)
     if (det.needsChoice) {

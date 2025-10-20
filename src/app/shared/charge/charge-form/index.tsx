@@ -12,14 +12,16 @@ export type FormDataType = {
   amount: string;
   description: string;
   clientName: string;
-  clientEmail: string;
+  // clientEmail: string;
+  anonymousPayer: boolean; // ⬅️ NOVO
 };
 
 export const initialChargeData: FormDataType = {
   amount: '',
   description: '',
   clientName: '',
-  clientEmail: '',
+  // clientEmail: '',
+  anonymousPayer: false, // ⬅️ NOVO
 };
 
 export const formDataAtom = atomWithStorage<FormDataType>(

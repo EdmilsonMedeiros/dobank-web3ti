@@ -1,4 +1,3 @@
-// /src/app/shared/charge/charge-form/step-two.tsx
 'use client';
 
 import { useAtom } from 'jotai';
@@ -33,19 +32,15 @@ export default function ChargeStepTwo() {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${session?.user.accessToken}`,
           },
-          body: JSON.stringify({}),  // corpo vazio, mas agora o Laravel vai interpretar como JSON
+          body: JSON.stringify({}),
         }
       );
-      
-      // if (!res.ok) {
-      //   console.error('Confirm API retornou status:', res.status);
-      // }
       json = await res.json();
     } catch (err) {
-      console.error('Erro na requisição:', err);
+      console.error('Erro na confirmação Dobank:', err);
       json = {
         error: true,
-        message: 'Erro de rede ao confirmar.',
+        message: 'Erro de rede ao confirmar no Dobank.',
         trx: deposit.trx,
         original_value: deposit.payable,
         image_base64: '',
@@ -62,16 +57,14 @@ export default function ChargeStepTwo() {
       copy_code: json.copy_code ?? '',
     });
 
-    if (!json.error) {
-      gotoNextStep();
-    }
+    if (!json.error) gotoNextStep();
   };
 
   return (
     <div className="flex flex-col">
       <ChargeHeader
-        title="Emitir cobrança"
-        description="Confira os detalhes e confirme."
+        title="Emitir cobrança (Dobank)"
+        description="Confira os valores e gere o QR Code."
       />
 
       <div className="px-5 pb-6 pt-5 md:px-7 md:pb-9 md:pt-7 space-y-3">
@@ -86,7 +79,7 @@ export default function ChargeStepTwo() {
           Voltar
         </Button>
         <Button onClick={handleConfirm} rounded="lg">
-          Confirmar
+          Gerar QR Code
         </Button>
       </footer>
     </div>

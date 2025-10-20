@@ -1,3 +1,4 @@
+// /apps/isomorphic-starter/src/app/(hydrogen)/dashboard/page.tsx
 import Image from 'next/image';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth-options";
@@ -8,9 +9,7 @@ import welcomeImg from "@public/banner-illustration.png";
 import StatCards from "@shared/ecommerce/dashboard/stat-cards";
 import ProfitWidget from "@shared/ecommerce/dashboard/profit-widget";
 import RecentOrder from "@shared/ecommerce/dashboard/recent-order";
-// import UpgradeStorage from "@shared/ecommerce/dashboard/upgrade-storage";
 import QrCode from '@shared/ecommerce/dashboard/qr-code'
-
 import { Button } from "rizzui/button";
 import { FaRegCopy } from "react-icons/fa";
 
@@ -23,6 +22,7 @@ export default async function Home() {
 
   const token = session.user.accessToken;
 
+  // ----- user -----
   const res = await fetch(`${apiBase}/user`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
@@ -51,6 +51,29 @@ export default async function Home() {
       }>;
     };
   };
+
+  // ---- saldo via API Dobank (proxy Laravel) ----
+  // Tenta pegar o saldo “real-time” do endpoint /saldo e usar como override
+  let saldoOverride: string | null = null;
+  try {
+    const saldoRes = await fetch(`${apiBase}/saldo`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+
+    if (saldoRes.ok) {
+      const data = (await saldoRes.json()) as { saldo?: string | number; moeda?: string };
+      if (data?.saldo !== undefined && data?.saldo !== null && data?.saldo !== '') {
+        // Normaliza para string
+        saldoOverride = String(data.saldo);
+      }
+    }
+    // se não ok ou sem saldo, apenas ignora e usa user.balance
+  } catch {
+    // silencioso: fallback para user.balance
+  }
+
+  const balanceForWidget = saldoOverride ?? user.balance;
 
   const fullName = `${user.firstname} ${user.lastname}`;
   const referralUrl = `${siteUrl}?reference=${user.username}`;
@@ -104,7 +127,7 @@ export default async function Home() {
         <div className="flex flex-col space-y-6">
           <ProfitWidget
             className="w-full h-auto"
-            balance={user.balance}
+            balance={balanceForWidget}
             balanceBloqueado={user.balance_bloqueado}
             bloqueiosMed="N/A"
             accountNumber={user.account_number}
@@ -115,8 +138,6 @@ export default async function Home() {
             manualCode={user.copiaecola}
             className="w-full"
           />
-
-          {/* <UpgradeStorage className="w-full" /> */}
         </div>
       </div>
     </div>
