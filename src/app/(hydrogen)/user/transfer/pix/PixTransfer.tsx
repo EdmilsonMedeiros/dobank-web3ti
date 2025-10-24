@@ -463,15 +463,6 @@ export default function PixTransfer(props: Props) {
           <p className="text-sm text-gray-500">Área Pix</p>
           <h2 className="text-lg font-medium">Transferência via Pix</h2>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 relative">
-            <Image src="/placeholder-avatar.png" alt="avatar" fill className="rounded-full object-cover" />
-          </div>
-          <div className="text-sm">
-            <p className="font-medium">{user.name}</p>
-            <p className="text-gray-500">Saldo: {formatCurrencyBR(user.balance)}</p>
-          </div>
-        </div>
       </div>
 
       {/* Tabs header */}

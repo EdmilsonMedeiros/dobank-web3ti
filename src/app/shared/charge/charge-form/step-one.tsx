@@ -39,7 +39,8 @@ const schema = z.discriminatedUnion('anonymousPayer', [
 type FormDataType = z.infer<typeof schema>;
 
 export default function ChargeStepOne() {
-  const { data: session } = useSession();
+  // ⚠️ ALTERAÇÃO: ler também o status para garantir sessão autenticada
+  const { data: session, status } = useSession();
   const { gotoNextStep } = useStepperCharge();
   const [formData, setFormData] = useAtom(formDataAtom);
   const [, setDeposit] = useAtom(depositResponseAtom);
@@ -79,6 +80,12 @@ export default function ChargeStepOne() {
   }, [anonymousPayer, clearErrors, unregister, setValue]);
 
   const onSubmit: SubmitHandler<FormDataType> = async (data) => {
+    // ⚠️ ALTERAÇÃO: bloquear envio enquanto a sessão não estiver pronta
+    const isReady = status === 'authenticated' && !!session?.user?.accessToken;
+    if (!isReady) {
+      throw new Error('Sessão ainda não carregada. Tente novamente em instantes.');
+    }
+
     // Persiste no atom (apenas para manter o estado do modal)
     setFormData(prev => ({
       ...prev,
@@ -107,7 +114,9 @@ export default function ChargeStepOne() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${session?.user.accessToken}`,
+        // (opcional, mas ajuda a evitar 302 em APIs Laravel)
+        'Accept': 'application/json',
+        Authorization: `Bearer ${session.user.accessToken}`,
       },
       body: JSON.stringify(body),
     });

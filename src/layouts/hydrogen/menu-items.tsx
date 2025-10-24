@@ -47,11 +47,11 @@ export const menuItems: MenuItem[] = [
     icon: <BsCashCoin />,
     dropdownItems: [
       {
-        name: "Transferências",
+        name: "Transferir",
         href: routes.core.transfers,
       },
       {
-        name: "Meus limites",
+        name: "Transferências",
         href: routes.core.myLimits,
       },
     ],

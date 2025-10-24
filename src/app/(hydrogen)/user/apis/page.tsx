@@ -87,6 +87,7 @@ export default async function UserApisPage() {
   `
 
   const hasRecToken = !!user?.api_token
+  const hasPgToken = !!user?.api_token_pg
 
   const initialData = {
     apiBaseUrl: env.NEXT_PUBLIC_API_BASE_URL,
@@ -127,7 +128,9 @@ export default async function UserApisPage() {
         minNoturno: moneyBRL(pgMinNight),
         maxNoturno: moneyBRL(pgMaxNight),
       },
-      token: user?.api_token_pg ?? null,
+      // Mesma segurança de Recebimentos: não enviar o token ao client.
+      token: null,
+      hasToken: hasPgToken,
       autorizacaoSelecionada: 'Email' as const,
       webhookUrl: user?.webhook_url_pagamento ?? 'https://',
     },

@@ -49,6 +49,7 @@ interface InitialData {
   pagamentos: {
     taxas: PagamentosTaxas
     token: string | null
+    hasToken: boolean
     autorizacaoSelecionada: ModoAutorizacao
     webhookUrl: string
   }
@@ -75,7 +76,9 @@ export default function ApiForm({ initialData }: ApiFormProps) {
 
   // ===== Pagamentos (state) =====
   const [pgTaxas] = useState(initialData.pagamentos.taxas)
-  const [pgToken] = useState<string | null>(initialData.pagamentos.token)
+  const [pgToken, setPgToken] = useState<string | null>(initialData.pagamentos.token)
+  const [pgTokenVisible, setPgTokenVisible] = useState(false)
+  const [isRevealingPgToken, setIsRevealingPgToken] = useState(false)
   const [pgAutorizacao, setPgAutorizacao] = useState<ModoAutorizacao>(
     initialData.pagamentos.autorizacaoSelecionada,
   )
@@ -206,6 +209,55 @@ export default function ApiForm({ initialData }: ApiFormProps) {
       alert('Falha ao contatar o servidor.')
     } finally {
       setIsRevealingRecToken(false)
+    }
+  }
+
+  // >>> NOVO: Revela e copia o token de PAGAMENTOS (usa api_token_pg_seen no backend)
+  async function handleRevealAndCopyPgToken() {
+    setIsRevealingPgToken(true)
+    try {
+      const res = await fetch(`${initialData.apiBaseUrl}/apis/token-seen-pg`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${initialData.authToken}`,
+          Accept: 'application/json',
+        },
+      })
+
+      if (!res.ok) {
+        let msg = 'Não foi possível exibir o token de pagamentos.'
+        try {
+          const data = await res.json()
+          if (res.status === 403) {
+            msg = data?.message ?? 'Você não tem permissão para visualizar o token de pagamentos novamente.'
+          } else if (res.status === 404) {
+            msg = data?.message ?? 'Token de pagamentos não encontrado.'
+          }
+        } catch {}
+        alert(msg)
+        return
+      }
+
+      const data = await res.json()
+      const token = data?.token ?? ''
+      if (!token) {
+        alert('Token vazio ou inválido.')
+        return
+      }
+
+      setPgToken(token)
+      setPgTokenVisible(true)
+
+      try {
+        await navigator.clipboard.writeText(token)
+        alert('Token exibido e copiado com sucesso!')
+      } catch {
+        alert('Token exibido. Não foi possível copiar automaticamente.')
+      }
+    } catch {
+      alert('Falha ao contatar o servidor.')
+    } finally {
+      setIsRevealingPgToken(false)
     }
   }
 
@@ -567,16 +619,18 @@ export default function ApiForm({ initialData }: ApiFormProps) {
                         <label className={labelClass}>API Token</label>
                         <textarea
                           className="w-full h-28 p-3 bg-gray-50 border border-gray-200 rounded-md"
-                          value={pgToken ?? ''}
+                          value={pgTokenVisible && pgToken ? pgToken : ''}
+                          placeholder='Clique em "Copiar Token" para revelar.'
                           disabled
                         />
                         <div className="flex justify-center">
                           <button
                             type="button"
-                            onClick={() => handleCopy(pgToken)}
-                            className="bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700"
+                            onClick={handleRevealAndCopyPgToken}
+                            disabled={isRevealingPgToken || !initialData.pagamentos.hasToken}
+                            className="bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
                           >
-                            Copiar Token
+                            {isRevealingPgToken ? 'Revelando...' : 'Copiar Token'}
                           </button>
                         </div>
                       </div>
@@ -599,7 +653,7 @@ export default function ApiForm({ initialData }: ApiFormProps) {
                             type="submit"
                             className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 text-sm font-medium"
                           >
-                            Trocar Token
+                            {initialData.pagamentos.hasToken ? 'Trocar Token' : 'Gerar Token'}
                           </button>
                         </div>
                       </form>
