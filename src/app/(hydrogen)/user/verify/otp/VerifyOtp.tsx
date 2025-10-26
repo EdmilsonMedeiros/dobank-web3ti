@@ -1,9 +1,10 @@
-// src/app/(hydrogen)/user/verify/otp/VerifyOtp.tsx
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useAtom } from 'jotai'
+import { showResultAtom, showResultLoadingAtom } from '@/app/shared/global-result-modal/state'
 
 type OtpType = 1 | 2 | 3
 type Action = {
@@ -25,6 +26,35 @@ interface Props {
   initialClock: string
 }
 
+/** 🔎 Resume o objeto `provider` do backend em pares legíveis para o usuário */
+function summarizeProvider(provider: any) {
+  if (!provider || typeof provider !== 'object') return undefined
+
+  const out: Record<string, any> = {}
+  const payer = provider?.payer
+  const b = Array.isArray(provider?.beneficiaries) ? provider.beneficiaries[0] : null
+
+  if (b) {
+    out['Status'] = b.status
+    out['Valor'] = b.amount
+    out['Favorecido'] = b.name
+    if (b.pix_key_type || b.pix_key) {
+      out['Chave Pix'] = [b.pix_key_type, b.pix_key].filter(Boolean).join(': ')
+    }
+    if (b.trx) out['Transação'] = b.trx
+    if (b.bank_code) out['Banco (ISPB)'] = b.bank_code
+    if (b.account_number) out['Conta Destino'] = b.account_number
+  }
+
+  if (payer) {
+    if (payer.account_number) out['Conta do Pagador'] = payer.account_number
+    if (payer.current_balance != null) out['Saldo Atual'] = payer.current_balance
+  }
+
+  // fallback: se nada mapeado, devolve o objeto original
+  return Object.keys(out).length ? out : provider
+}
+
 export default function VerifyOtp({
   apiBaseUrl,
   authToken,
@@ -41,6 +71,10 @@ export default function VerifyOtp({
   const [otp, setOtp] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [resending, setResending] = useState(false)
+
+  // —— átomos do modal global —— 
+  const [, showLoading] = useAtom(showResultLoadingAtom)
+  const [, showResult]  = useAtom(showResultAtom)
 
   // segundos restantes (snapshot vindo do servidor p/ evitar hydration mismatch)
   const [secondsLeft, setSecondsLeft] = useState<number>(Math.max(0, Number(initialSecondsLeft ?? 0)))
@@ -97,11 +131,13 @@ export default function VerifyOtp({
     e.preventDefault()
     if (submitting || expired) return
     if (!otp.trim()) {
-      alert('Informe o OTP.')
+      showResult({ variant: 'error', title: 'Código ausente', message: 'Informe o OTP.' })
       return
     }
 
     setSubmitting(true)
+    showLoading('Validando código OTP…')
+
     try {
       const body: Record<string, any> = { otp }
       if (initialActionId) body.action_id = initialActionId
@@ -125,11 +161,20 @@ export default function VerifyOtp({
         throw new Error(msg)
       }
 
-      alert(data?.message ?? 'OTP verificado com sucesso!')
-      // comportamento pós-sucesso: volte para a home (ajuste se quiser outro destino)
-      router.push('/user/apis')
+      // sucesso — mostra resultado com provider RESUMIDO (sem despejar o JSON bruto)
+      showResult({
+        variant: 'success',
+        title: 'PIX enviado com sucesso',
+        message: data?.message ?? 'Transação concluída.',
+        details: summarizeProvider(data?.provider),    // <<< AQUI: provider resumido
+        redirectTo: data?.redirect_to || '/user/apis', // ao fechar, navega
+      })
     } catch (err: any) {
-      alert(err?.message ?? 'Não foi possível verificar o OTP.')
+      showResult({
+        variant: 'error',
+        title: 'Não foi possível concluir',
+        message: err?.message ?? 'Erro inesperado ao validar OTP.',
+      })
     } finally {
       setSubmitting(false)
     }
@@ -138,6 +183,8 @@ export default function VerifyOtp({
   async function handleResend() {
     if (resending) return
     setResending(true)
+    showLoading('Reenviando OTP…')
+
     try {
       const body: Record<string, any> = {}
       if (initialActionId) body.action_id = initialActionId
@@ -158,11 +205,19 @@ export default function VerifyOtp({
         throw new Error(msg)
       }
 
-      alert(data?.message ?? 'OTP reenviado com sucesso!')
-      // reconsulta a ação para atualizar o expired_at / timer
+      // mostra confirmação e atualiza timer
+      showResult({
+        variant: 'info',
+        title: 'OTP reenviado',
+        message: data?.message ?? 'Enviamos um novo código.',
+      })
       await refetchAction()
     } catch (err: any) {
-      alert(err?.message ?? 'Erro ao reenviar OTP.')
+      showResult({
+        variant: 'error',
+        title: 'Falha ao reenviar OTP',
+        message: err?.message ?? 'Erro ao reenviar OTP.',
+      })
     } finally {
       setResending(false)
     }

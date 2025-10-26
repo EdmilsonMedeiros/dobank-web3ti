@@ -4,6 +4,8 @@
 import React from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { useAtom } from 'jotai'
+import { showResultAtom, showResultLoadingAtom } from '@/app/shared/global-result-modal/state'
 
 type Bank = {
   name: string
@@ -91,6 +93,35 @@ function ensurePhoneWithCountry(raw: string) {
   return `+55${d}`
 }
 
+/** 🔎 Resume o objeto `provider` do backend em pares legíveis para o usuário */
+function summarizeProvider(provider: any) {
+  if (!provider || typeof provider !== 'object') return undefined
+
+  const out: Record<string, any> = {}
+  const payer = provider?.payer
+  const b = Array.isArray(provider?.beneficiaries) ? provider.beneficiaries[0] : null
+
+  if (b) {
+    out['Status'] = b.status
+    out['Valor'] = b.amount
+    out['Favorecido'] = b.name
+    if (b.pix_key_type || b.pix_key) {
+      out['Chave Pix'] = [b.pix_key_type, b.pix_key].filter(Boolean).join(': ')
+    }
+    if (b.trx) out['Transação'] = b.trx
+    if (b.bank_code) out['Banco (ISPB)'] = b.bank_code
+    if (b.account_number) out['Conta Destino'] = b.account_number
+  }
+
+  if (payer) {
+    if (payer.account_number) out['Conta do Pagador'] = payer.account_number
+    if (payer.current_balance != null) out['Saldo Atual'] = payer.current_balance
+  }
+
+  // fallback: se nada mapeado, devolve o objeto original
+  return Object.keys(out).length ? out : provider
+}
+
 export default function PixTransfer(props: Props) {
   const {
     apiBaseUrl,
@@ -109,6 +140,10 @@ export default function PixTransfer(props: Props) {
 
   const [active, setActive] = React.useState<TabKey>('pix-key')
   const [toast, setToast] = React.useState<string | null>(null)
+
+  // —— átomos do modal global ——
+  const [, showLoading] = useAtom(showResultLoadingAtom)
+  const [, showResult]  = useAtom(showResultAtom)
 
   // ---- Form "Chave Pix" (sem o select de tipo, agora autodetect)
   const [pixKeyType, setPixKeyType] = React.useState<Beneficiary['pix_key_type'] | ''>('') // gerenciado automaticamente
@@ -246,17 +281,35 @@ export default function PixTransfer(props: Props) {
   }
 
   function handleActionResponse(data: any, fallbackMsg: string) {
+    // Se for fluxo com OTP pendente
     if (data?.action_id || data?.status === 'pending_otp') {
       const id = data?.action_id ?? data?.action?.id
       const qs = id ? `?action_id=${encodeURIComponent(String(id))}` : ''
-      router.push(`/user/verify/otp${qs}`)
+      showResult({
+        variant: 'info',
+        title: 'Confirme seu OTP',
+        message: 'Enviamos um código por e-mail. Você será levado para a tela de verificação.',
+        redirectTo: `/user/verify/otp${qs}`,
+      })
       return
     }
+    // Sucesso com destino conhecido — envia PROVIDER RESUMIDO
     if (data?.status === 'success' && data?.redirect_to) {
-      window.location.href = data.redirect_to
+      showResult({
+        variant: 'success',
+        title: 'Solicitação concluída',
+        message: data?.message ?? fallbackMsg,
+        details: summarizeProvider(data?.provider), // <<< AQUI usamos o compacto
+        redirectTo: data.redirect_to,
+      })
       return
     }
-    showToast(data?.message ?? fallbackMsg)
+    // Fallback
+    showResult({
+      variant: 'info',
+      title: 'Informação',
+      message: data?.message ?? fallbackMsg,
+    })
   }
 
   // ===== Validação ao sair do campo (agora autodetect) =====
@@ -274,8 +327,14 @@ export default function PixTransfer(props: Props) {
   async function submitPixKey(e: React.FormEvent) {
     e.preventDefault()
     const amount = parseCurrencyBR(pixAmount)
-    if (!pixKeyValue.trim()) return alert('Digite a chave')
-    // if (amount < pix.minimum_limit || amount > pix.maximum_limit) return alert('Valor fora dos limites')
+    if (!pixKeyValue.trim()) {
+      showResult({ variant: 'error', title: 'Chave ausente', message: 'Digite a chave Pix.' })
+      return
+    }
+    // if (amount < pix.minimum_limit || amount > pix.maximum_limit) {
+    //   showResult({ variant: 'error', title: 'Valor inválido', message: 'Valor fora dos limites.' })
+    //   return
+    // }
 
     const det = detectPixType(pixKeyValue)
     if (det.needsChoice) {
@@ -284,7 +343,14 @@ export default function PixTransfer(props: Props) {
       setChooseTypeOpen(true)
       return
     }
-    if (!det.type) return alert('Não foi possível identificar o tipo da chave. Verifique o valor informado.')
+    if (!det.type) {
+      showResult({
+        variant: 'error',
+        title: 'Tipo de chave desconhecido',
+        message: 'Não foi possível identificar o tipo da chave. Verifique o valor informado.',
+      })
+      return
+    }
     // setar tipo e chamar modal de confirmação
     setPixKeyType(det.type)
     setPixKeyValue(det.formattedKey)
@@ -295,6 +361,7 @@ export default function PixTransfer(props: Props) {
   async function confirmAndSendPix() {
     if (!confirmData) return
     setSubmitting(true)
+    showLoading('Criando solicitação de Pix…')
     try {
       const data = await postUserAction({
         type: 'pix_transfer',
@@ -311,24 +378,35 @@ export default function PixTransfer(props: Props) {
       setPixDesc('')
       setPixAmount('')
     } catch (err: any) {
-      alert(err?.message ?? 'Não foi possível criar a transferência.')
+      showResult({
+        variant: 'error',
+        title: 'Falha ao criar transferência',
+        message: err?.message ?? 'Não foi possível criar a transferência.',
+      })
     } finally {
       setSubmitting(false)
     }
   }
 
-  // ===== Account transfer (sem mudanças) =====
+  // ===== Account transfer (sem mudanças funcionais, mas usando modal) =====
   async function submitAccountTransfer(e: React.FormEvent) {
     e.preventDefault()
     const amount = parseCurrencyBR(accAmount)
-    if (!bankName) return alert('Informe o nome do banco')
-    if (!accType) return alert('Informe o tipo da conta')
-    if (!accName) return alert('Informe o nome completo')
-    if (!/^\d{11}$|^\d{14}$/.test(digits(cpfCnpj))) return alert('CPF/CNPJ inválido!')
-    if (!branch || !accNumber || !accDigit) return alert('Preencha agência, conta e dígito')
-    if (amount < pix.minimum_limit || amount > pix.maximum_limit) return alert('Valor fora dos limites')
+    if (!bankName) return showResult({ variant: 'error', title: 'Banco ausente', message: 'Informe o nome do banco.' })
+    if (!accType) return showResult({ variant: 'error', title: 'Tipo de conta', message: 'Informe o tipo da conta.' })
+    if (!accName) return showResult({ variant: 'error', title: 'Nome completo', message: 'Informe o nome completo.' })
+    if (!/^\d{11}$|^\d{14}$/.test(digits(cpfCnpj))) {
+      return showResult({ variant: 'error', title: 'CPF/CNPJ inválido', message: 'Digite um documento válido.' })
+    }
+    if (!branch || !accNumber || !accDigit) {
+      return showResult({ variant: 'error', title: 'Dados bancários', message: 'Preencha agência, conta e dígito.' })
+    }
+    if (amount < pix.minimum_limit || amount > pix.maximum_limit) {
+      return showResult({ variant: 'error', title: 'Valor inválido', message: 'Valor fora dos limites.' })
+    }
 
     try {
+      showLoading('Criando solicitação de Pix…')
       const data = await postUserAction({
         type: 'pix_transfer',
         id: 0,
@@ -347,7 +425,11 @@ export default function PixTransfer(props: Props) {
       setAccDesc('')
       setAccAmount('')
     } catch (err: any) {
-      alert(err?.message ?? 'Não foi possível criar a transferência.')
+      showResult({
+        variant: 'error',
+        title: 'Falha ao criar transferência',
+        message: err?.message ?? 'Não foi possível criar a transferência.',
+      })
     }
   }
 
@@ -370,9 +452,13 @@ export default function PixTransfer(props: Props) {
     e.preventDefault()
     if (!recentTarget) return
     const amount = parseCurrencyBR(recentAmount)
-    if (amount < pix.minimum_limit || amount > pix.maximum_limit) return alert('Valor fora dos limites')
+    if (amount < pix.minimum_limit || amount > pix.maximum_limit) {
+      showResult({ variant: 'error', title: 'Valor inválido', message: 'Valor fora dos limites.' })
+      return
+    }
 
     try {
+      showLoading('Criando solicitação de Pix…')
       const data = await postUserAction({
         type: 'pix_transfer',
         id: Number(recentTarget.id),
@@ -384,7 +470,11 @@ export default function PixTransfer(props: Props) {
       handleActionResponse(data, 'Pix enviado.')
       setRecentModalOpen(false)
     } catch (err: any) {
-      alert(err?.message ?? 'Não foi possível enviar o Pix.')
+      showResult({
+        variant: 'error',
+        title: 'Falha ao enviar Pix',
+        message: err?.message ?? 'Não foi possível enviar o Pix.',
+      })
     }
   }
 
@@ -624,7 +714,7 @@ export default function PixTransfer(props: Props) {
                       <td className="py-2 pr-3">{log.message}</td>
                       <td className="py-2 pr-3">{log.created_at}</td>
                       <td className="py-2 pr-3">
-                        <button className="text-blue-600 hover:underline text-sm" onClick={() => alert(`Detalhes #${log.id} (simulação)`)}>
+                        <button className="text-blue-600 hover:underline text-sm" onClick={() => showResult({ variant: 'info', title: `Detalhes #${log.id}`, message: log.message })}>
                           Detalhes
                         </button>
                       </td>
